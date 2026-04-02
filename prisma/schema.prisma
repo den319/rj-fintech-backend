@@ -1,0 +1,103 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model UserMaster {
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  phone      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  // activities   UserActivity[]
+  // companies    UserMapping[]
+
+  @@index([email])
+  @@index([id])
+
+}
+
+model CompanyMaster {
+  id         String   @id @default(uuid())
+  name       String
+  gst        String?  @unique
+  brand      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  // users        UserMapping[]
+  // groupLinks   CompanyMapping[]
+
+}
+
+model GroupCompanyMaster {
+  id         String   @id @default(uuid())
+  name       String
+  code       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relations
+  // companies   CompanyMapping[]
+
+}
+
+model UserActivity {
+  id         String   @id @default(uuid())
+  token      String
+  userId     String   @unique
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relation
+  // user       UserMaster @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserMapping {
+  userId     String
+  companyId  String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  // Relations
+  // user     UserMaster    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  // company  CompanyMaster @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@id([userId, companyId])
+  @@index([companyId])
+}
+
+model CompanyMapping {
+  companyId        String
+  groupCompanyId   String
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  // Relations
+  // company       CompanyMaster       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // groupCompany  GroupCompanyMaster @relation(fields: [groupCompanyId], references: [id], onDelete: Cascade)
+
+  @@id([companyId, groupCompanyId]) // composite primary key
+  @@index([groupCompanyId])
+}
