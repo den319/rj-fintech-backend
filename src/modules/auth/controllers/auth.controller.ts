@@ -89,16 +89,10 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const logoutController = asyncHandler(async (req: Request, res: Response) => {
-	// console.log(req.user)
+	console.log(req.user)
 
 	const token = req.cookies?.accessToken;
 	const userId = req.user?.id;
-
-	if (!userId) {
-		return res
-			.status(HTTP_STATUS.UNAUTHORIZED)
-			.json({ message: "Unauthorized user! Cannot log-out." });
-	}
 
 	if (!token) {
 		return res.status(HTTP_STATUS.OK).json({ message: "Already logged out" });
