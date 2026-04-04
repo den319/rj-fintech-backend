@@ -8,6 +8,6 @@ export const getAllCompanies = asyncHandler(async (req: Request, res: Response) 
 
 	return res.status(HTTP_STATUS.OK).json({
 		message: "Companies fetched successfully!",
-		companies,
+		data: companies,
 	});
 });
