@@ -22,22 +22,22 @@ app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
 app.use(
-  cors({
-    origin: Env.FRONTEND_ORIGIN,
-    credentials: true,
-  })
+	cors({
+		origin: Env.FRONTEND_ORIGIN,
+		credentials: true,
+	})
 );
 
 app.use(passport.initialize());
 
 app.get(
-  "/health",
-  asyncHandler(async (req: Request, res: Response) => {
-    res.status(HTTP_STATUS.OK).json({
-      status: "OK",
-      message: "Server is working!",
-    });
-  })
+	"/health",
+	asyncHandler(async (req: Request, res: Response) => {
+		res.status(HTTP_STATUS.OK).json({
+			status: "OK",
+			message: "Server is working!",
+		});
+	})
 );
 
 app.use("/api/v1", routes);
@@ -45,15 +45,15 @@ app.use("/api/v1", routes);
 app.use(errorHandler);
 
 server.listen(Env.PORT, () => {
-  prisma
-    .$connect()
-    .then(() => {
-      console.log("✅ Connected to database");
-      console.log(`Server is running on port: ${Env.PORT}`);
-      console.log(`\nServer is running in ${Env.NODE_ENV} mode\n`);
-    })
-    .catch((error) => {
-      console.error("❌ Failed to connect to database:", error);
-      process.exit(1);
-    });
+	prisma
+		.$connect()
+		.then(() => {
+			console.log("✅ Connected to database");
+			console.log(`Server is running on port: ${Env.PORT}`);
+			console.log(`\nServer is running in ${Env.NODE_ENV} mode\n`);
+		})
+		.catch((error) => {
+			console.error("❌ Failed to connect to database:", error);
+			process.exit(1);
+		});
 });

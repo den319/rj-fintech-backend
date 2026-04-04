@@ -1,15 +1,15 @@
 export type CompanyGroup = {
-  groupName: string | null;
-  groupCode: string | null;
-  companies: Company[];
+	groupName: string | null;
+	groupCode: string | null;
+	companies: Company[];
 };
 
 export type Company = {
-  name: string;
-  gst?: string;
-  address: string;
-  registeredAt: Date;
-  brand?: string;
-  companyCode: String;
-  iecode: String;
+	name: string;
+	gst?: string;
+	address: string;
+	registeredAt: Date;
+	brand?: string;
+	companyCode: string;
+	iecode: string;
 };

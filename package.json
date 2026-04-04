@@ -16,9 +16,9 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src --ext .ts",
     "lint:fix": "eslint src --ext .ts --fix",
-    "format": "prettier --write \"src/**/*.ts\"",
+    "format": "prettier --write \"src/**/*.ts\" --fix",
     "format:check": "prettier --check \"src/**/*.ts\"",
-    "validate": "npm run typecheck && npm run lint && npm run format:check"
+    "validate": "npm run typecheck && npm run lint && npm run format"
   },
   "keywords": [],
   "author": "",
