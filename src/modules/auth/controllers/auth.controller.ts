@@ -92,17 +92,25 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 	console.log(req.user)
 
 	const token = req.cookies?.accessToken;
-	const userId = req.user?.id;
+	const userEmail = req.user?.email;
 
 	if (!token) {
 		return res.status(HTTP_STATUS.OK).json({ message: "Already logged out" });
 	}
 
-	await prisma.userActivity.delete({
+	const user= await prisma.userMaster.findUnique({
 		where: {
-			userId,
-		},
+			email: userEmail
+		}
 	});
+	
+	if(user) {
+		await prisma.userActivity.delete({
+			where: {
+				userId: user.id,
+			},
+		});
+	}
 
 	res.clearCookie("accessToken", { path: "/" });
 	res.clearCookie("refreshToken", { path: "/" });
