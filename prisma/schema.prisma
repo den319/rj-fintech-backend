@@ -33,12 +33,13 @@ model UserMaster {
 
 model CompanyMaster {
   id         String   @id @default(uuid())
-  name       String
   gst        String?  @unique
   legalName  String
   address    String
   registeredAt DateTime
   brand      String?
+  companyCode String
+  ieCode String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?

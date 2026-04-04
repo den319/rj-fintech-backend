@@ -16,6 +16,13 @@ export const registerService = async (body: RegisterSchemaType) => {
   // 1. Check existing user
   const existingUser = await prisma.userMaster.findUnique({
     where: { email },
+    select: {
+      id: true,
+      password: true,
+      name: true,
+      email: true,
+      phone: true,
+    }
   });
 
   if (existingUser) {
@@ -32,9 +39,41 @@ export const registerService = async (body: RegisterSchemaType) => {
       email,
       password: hashedPassword,
     },
+    select: {
+      id: true,
+      password: true,
+      name: true,
+      email: true,
+      phone: true,
+    }
   });
 
-  return newUser;
+    const userMapping = await prisma.userMapping.findFirst({
+    where: { userId: newUser.id }
+  });
+
+  const company = userMapping
+    ? await prisma.companyMaster.findUnique({ where: { id: userMapping.companyId } })
+    : null;
+
+  const companyMapping = userMapping
+    ? await prisma.companyMapping.findFirst({ where: { companyId: userMapping.companyId } })
+    : null;
+
+  const groupCompany = companyMapping
+    ? await prisma.groupCompanyMaster.findUnique({ where: { id: companyMapping.groupCompanyId } })
+    : null;
+
+  const userResponse = {
+    ...newUser,
+    company: company?.legalName ?? null,
+    brand: company?.brand ?? null,
+    companyCode: company?.companyCode ?? null,
+    groupName: groupCompany?.name ?? null,
+    groupCode: groupCompany?.code ?? null,
+  };
+
+  return userResponse;
 };
 
 export const loginService = async (body: LoginSchemaType) => {
@@ -43,6 +82,14 @@ export const loginService = async (body: LoginSchemaType) => {
   // 1. Find user (include password for validation)
   const user = await prisma.userMaster.findUnique({
     where: { email },
+    select: {
+      id: true,
+      password: true,
+      name: true,
+      email: true,
+      phone: true,
+      deletedAt: true,
+    }
   });
 
   if (!user || user.deletedAt) {
@@ -56,7 +103,32 @@ export const loginService = async (body: LoginSchemaType) => {
     throw new UnauthorizedException("Invalid email or password!");
   }
 
-  return user;
+      const userMapping = await prisma.userMapping.findFirst({
+    where: { userId: user.id }
+  });
+
+  const company = userMapping
+    ? await prisma.companyMaster.findUnique({ where: { id: userMapping.companyId } })
+    : null;
+
+  const companyMapping = userMapping
+    ? await prisma.companyMapping.findFirst({ where: { companyId: userMapping.companyId } })
+    : null;
+
+  const groupCompany = companyMapping
+    ? await prisma.groupCompanyMaster.findUnique({ where: { id: companyMapping.groupCompanyId } })
+    : null;
+
+  const userResponse = {
+    ...user,
+    company: company?.legalName ?? null,
+    brand: company?.brand ?? null,
+    companyCode: company?.companyCode ?? null,
+    groupName: groupCompany?.name ?? null,
+    groupCode: groupCompany?.code ?? null,
+  };
+
+  return userResponse;
 };
 
 export const refreshTokenService = async (refreshToken: string) => {

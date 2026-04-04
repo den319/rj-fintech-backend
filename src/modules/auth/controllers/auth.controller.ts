@@ -39,6 +39,7 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
   // Exclude sensitive fields from response
   const { password: _password, id: _id, ...userWithoutSensitiveData } = user;
 
+
   return setJwtAuthCookie({ res, accessToken, refreshToken }).status(HTTP_STATUS.CREATED).json({
     message: "User created successfully!",
     user: userWithoutSensitiveData,
@@ -75,7 +76,7 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
   });
 
   // Exclude sensitive fields from response
-  const { password: _password, id: _id, ...userWithoutSensitiveData } = user;
+  const { password: _password, id: _id, deletedAt: _deletedAt, ...userWithoutSensitiveData } = user;
 
   return setJwtAuthCookie({ res, accessToken, refreshToken }).status(HTTP_STATUS.OK).json({
     message: "User logged-in successfully!",

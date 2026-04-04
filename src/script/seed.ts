@@ -33,36 +33,40 @@ async function seed() {
   const companies = await prisma.companyMaster.createMany({
     data: [
       {
-        name: "Tech Solutions Ltd",
+        legalName: "Tech Solutions Ltd",
         gst: "GST001",
         brand: "TechSol",
-        legalName: "Nen Tech",
         address: "USA",
         registeredAt: new Date("2022-01-15"),
+        companyCode: "MVPOER44",
+        ieCode: "VMWO1"
       },
       {
-        name: "Finance Pro Inc",
+        legalName: "Finance Pro Inc",
         gst: "GST002",
         brand: "FinPro",
-        legalName: "Omega Group",
         address: "Russia",
         registeredAt: new Date("2011-04-30"),
+        companyCode: "VECEBI5",
+        ieCode: "XMCERI5"
       },
       {
-        name: "Retail Max",
+        legalName: "Retail Max",
         gst: "GST003",
         brand: "RetailMax",
-        legalName: "Hashimoto Solutions",
         address: "Japan",
         registeredAt: new Date("2004-09-01"),
+        companyCode: "NVEINNC85",
+        ieCode: "KKKS3"
       },
       {
-        name: "Digital Services",
+        legalName: "Digital Services",
         gst: "GST004",
         brand: "DigiServ",
-        legalName: "Otter Lab",
         address: "Singapore",
         registeredAt: new Date("1991-03-21"),
+        companyCode: "MVVRJJS342",
+        ieCode: "VEON5"
       },
     ],
   });
@@ -131,6 +135,21 @@ async function seed() {
   }
   await prisma.userActivity.createMany({ data: activities });
   console.log(`✅ Created ${activities.length} user activities`);
+
+
+    console.log("\n🏢 Creating a Single Company...");
+  const singleCompany = await prisma.companyMaster.create({
+    data: {
+        legalName: "Alpha Solutions Ltd",
+        gst: "GST005",
+        brand: "AlphaSol",
+        address: "USA",
+        registeredAt: new Date("2022-01-15"),
+        companyCode: "MVPOER85",
+        ieCode: "VMW88"
+      },
+  });
+  console.log(`✅ Created a single comapny`);
 
   console.log("\n🎉 Seeding complete!");
   console.log("📊 Summary:");

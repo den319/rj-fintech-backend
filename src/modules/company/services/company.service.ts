@@ -11,10 +11,11 @@ export const getAllCompaniesService = async () => {
   const groupMap = new Map<string, CompanyGroup>(
     groupCompanies.map((g) => [
       g.id,
-      {
-        companies: [],
-        ...g,
-      },
+      { 
+      groupName: g.name, 
+      groupCode: g.code, 
+      companies: [],
+    }
     ])
   );
 
@@ -23,26 +24,22 @@ export const getAllCompaniesService = async () => {
   );
 
   const nullGroup: CompanyGroup = {
-    name: null,
-    code: null,
+    groupName: null,
+    groupCode: null,
     companies: [],
-    createdAt: null,
-    updatedAt: null,
   };
 
   for (const company of companies) {
     const groupId = companyToGroupMap.get(company.id);
 
     const companyData: Company = {
-      name: company.name,
+      companyCode: company.companyCode,
+      name: company.legalName,
       gst: company.gst ?? undefined,
-      legalName: company.legalName,
-      address: company.address,
-      registeredAt: company.registeredAt,
       brand: company.brand ?? undefined,
-      createdAt: company.createdAt,
-      updatedAt: company.updatedAt,
-      deletedAt: company.deletedAt ?? undefined,
+      iecode: company.ieCode,
+      registeredAt: company.registeredAt,
+      address: company.address,
     };
 
     if (groupId && groupMap.has(groupId)) {
