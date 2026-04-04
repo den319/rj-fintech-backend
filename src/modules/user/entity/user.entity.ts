@@ -32,7 +32,7 @@ export class User {
   }
 
   toResponse() {
-    const { password, ...result } = this;
+    const { password: _password, ...result } = this;
     return result;
   }
 }

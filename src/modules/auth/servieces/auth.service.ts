@@ -1,18 +1,9 @@
 import jwt from "jsonwebtoken";
-import {
-  UnauthorizedException,
-  NotFoundException,
-} from "../../../utils/appError";
-import {
-  RegisterSchemaType,
-  LoginSchemaType,
-} from "../validators/auth.validator";
+import { UnauthorizedException, NotFoundException } from "../../../utils/appError";
+import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validator";
 import { prisma } from "../../../config/prismaClient";
 import { compareHash, hashValue } from "../../../utils/bcrypt";
-import {
-  generateAccessToken,
-  generateRefreshToken,
-} from "../../../utils/cookie";
+import { generateAccessToken, generateRefreshToken } from "../../../utils/cookie";
 import { Env } from "../../../config/env.config";
 
 interface JwtPayload {
@@ -41,14 +32,6 @@ export const registerService = async (body: RegisterSchemaType) => {
       email,
       password: hashedPassword,
     },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      phone: true,
-      createdAt: true,
-      updatedAt: true,
-    },
   });
 
   return newUser;
@@ -73,16 +56,14 @@ export const loginService = async (body: LoginSchemaType) => {
     throw new UnauthorizedException("Invalid email or password!");
   }
 
-  // 3. Return user without password
-  const { password: _, ...userWithoutPassword } = user;
-  return userWithoutPassword;
+  return user;
 };
 
 export const refreshTokenService = async (refreshToken: string) => {
   const payload = jwt.verify(refreshToken, Env.JWT_REFRESH_SECRET) as JwtPayload;
 
-  if(!payload) {
-    throw new UnauthorizedException("Invalid token!")
+  if (!payload) {
+    throw new UnauthorizedException("Invalid token!");
   }
 
   const session = await prisma.userActivity.findUnique({
@@ -90,7 +71,7 @@ export const refreshTokenService = async (refreshToken: string) => {
   });
 
   if (!session) {
-    throw new UnauthorizedException("Session expired")
+    throw new UnauthorizedException("Session expired");
   }
 
   const isValid = await compareHash(refreshToken, session.token);
@@ -103,8 +84,7 @@ export const refreshTokenService = async (refreshToken: string) => {
       where: { userId: payload.userId },
     });
 
-    throw new UnauthorizedException("Invalid token")
-
+    throw new UnauthorizedException("Invalid token");
   }
 
   // TOKEN ROTATION (VERY IMPORTANT)
@@ -120,5 +100,5 @@ export const refreshTokenService = async (refreshToken: string) => {
     },
   });
 
-  return {newAccessToken, newRefreshToken};
+  return { newAccessToken, newRefreshToken };
 };

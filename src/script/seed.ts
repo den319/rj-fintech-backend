@@ -21,7 +21,6 @@ async function seed() {
       { name: "Tech Corp Group", code: "TCG001" },
       { name: "Finance Holdings", code: "FH002" },
       { name: "Retail Empire", code: "RE003" },
-
     ],
   });
   console.log(`✅ Created ${groupCompanies.count} group companies`);
@@ -33,10 +32,38 @@ async function seed() {
   console.log("\n🏢 Creating Companies...");
   const companies = await prisma.companyMaster.createMany({
     data: [
-      { name: "Tech Solutions Ltd", gst: "GST001", brand: "TechSol", legalName: "Nen Tech", address: "USA", registeredAt: new Date('2022-01-15') },
-      { name: "Finance Pro Inc", gst: "GST002", brand: "FinPro", legalName: "Omega Group", address: "Russia", registeredAt: new Date('2011-04-30') },
-      { name: "Retail Max", gst: "GST003", brand: "RetailMax", legalName: "Hashimoto Solutions", address: "Japan", registeredAt: new Date('2004-09-01') },
-      { name: "Digital Services", gst: "GST004", brand: "DigiServ", legalName: "Otter Lab", address: "Singapore", registeredAt: new Date('1991-03-21') },
+      {
+        name: "Tech Solutions Ltd",
+        gst: "GST001",
+        brand: "TechSol",
+        legalName: "Nen Tech",
+        address: "USA",
+        registeredAt: new Date("2022-01-15"),
+      },
+      {
+        name: "Finance Pro Inc",
+        gst: "GST002",
+        brand: "FinPro",
+        legalName: "Omega Group",
+        address: "Russia",
+        registeredAt: new Date("2011-04-30"),
+      },
+      {
+        name: "Retail Max",
+        gst: "GST003",
+        brand: "RetailMax",
+        legalName: "Hashimoto Solutions",
+        address: "Japan",
+        registeredAt: new Date("2004-09-01"),
+      },
+      {
+        name: "Digital Services",
+        gst: "GST004",
+        brand: "DigiServ",
+        legalName: "Otter Lab",
+        address: "Singapore",
+        registeredAt: new Date("1991-03-21"),
+      },
     ],
   });
   console.log(`✅ Created ${companies.count} companies`);

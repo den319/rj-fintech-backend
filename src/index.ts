@@ -19,9 +19,7 @@ const server = http.createServer(app);
 app.use(express.json());
 app.use(cookieParser());
 
-app.use(
-  express.urlencoded({ extended: true })
-);
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
@@ -46,14 +44,16 @@ app.use("/api/v1", routes);
 
 app.use(errorHandler);
 
-server.listen(Env.PORT, async () => {
-  try {
-    await prisma.$connect();
-    console.log("✅ Connected to database");
-    console.log(`Server is running on port: ${Env.PORT}`);
-    console.log(`\nServer is running in ${Env.NODE_ENV} mode\n`);
-  } catch (error) {
-    console.error("❌ Failed to connect to database:", error);
-    process.exit(1);
-  }
+server.listen(Env.PORT, () => {
+  prisma
+    .$connect()
+    .then(() => {
+      console.log("✅ Connected to database");
+      console.log(`Server is running on port: ${Env.PORT}`);
+      console.log(`\nServer is running in ${Env.NODE_ENV} mode\n`);
+    })
+    .catch((error) => {
+      console.error("❌ Failed to connect to database:", error);
+      process.exit(1);
+    });
 });

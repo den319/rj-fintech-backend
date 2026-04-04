@@ -4,7 +4,6 @@ export class UserService {
   async getAllUsers() {
     const users = await prisma.userMaster.findMany({
       select: {
-        id: true,
         name: true,
         email: true,
         createdAt: true,
@@ -20,7 +19,6 @@ export class UserService {
     const user = await prisma.userMaster.findUnique({
       where: { id: userId },
       select: {
-        id: true,
         name: true,
         email: true,
         createdAt: true,
@@ -44,7 +42,6 @@ export const findByIdUserService = async (userId: string) => {
   return prisma.userMaster.findUnique({
     where: { id: userId },
     select: {
-      id: true,
       name: true,
       email: true,
       phone: true,
@@ -61,7 +58,6 @@ export const getUsersService = async (userId: string) => {
       NOT: { id: userId },
     },
     select: {
-      id: true,
       name: true,
       email: true,
     },

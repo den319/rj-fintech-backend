@@ -190,6 +190,12 @@ npm run seed
 | `npm run seed` | Seed database with sample data |
 | `npm test` | Run test suite |
 | `npm run test:concurrency` | Run load tests |
+| `npm run typecheck` | Run TypeScript type checking (no emit) |
+| `npm run lint` | Run ESLint to check for linting errors |
+| `npm run lint:fix` | Run ESLint and auto-fix fixable issues |
+| `npm run format` | Format code with Prettier |
+| `npm run format:check` | Check if code is formatted correctly |
+| `npm run validate` | Run typecheck, lint, and format:check (CI validation) |
 
 ## 🔒 Security Features
 

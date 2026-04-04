@@ -1,7 +1,6 @@
 import { prisma } from "../config/prismaClient";
 
 async function clearDB() {
-
   console.log("🗑️  Clearing existing data...");
   await prisma.userActivity.deleteMany();
   await prisma.userMapping.deleteMany();
