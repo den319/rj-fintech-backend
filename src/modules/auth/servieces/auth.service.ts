@@ -41,6 +41,14 @@ export const registerService = async (body: RegisterSchemaType) => {
       email,
       password: hashedPassword,
     },
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      phone: true,
+      createdAt: true,
+      updatedAt: true,
+    },
   });
 
   return newUser;
@@ -49,7 +57,7 @@ export const registerService = async (body: RegisterSchemaType) => {
 export const loginService = async (body: LoginSchemaType) => {
   const { email, password } = body;
 
-  // 1. Find user
+  // 1. Find user (include password for validation)
   const user = await prisma.userMaster.findUnique({
     where: { email },
   });
@@ -65,7 +73,9 @@ export const loginService = async (body: LoginSchemaType) => {
     throw new UnauthorizedException("Invalid email or password!");
   }
 
-  return user;
+  // 3. Return user without password
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword;
 };
 
 export const refreshTokenService = async (refreshToken: string) => {

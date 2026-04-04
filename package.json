@@ -10,6 +10,7 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
     "seed": "ts-node src/script/seed.ts",
+    "clean:db": "ts-node src/script/clearDB.ts",
     "test": "jest --runInBand",
     "test:concurrency": "node ./test/load-test.js"
   },
