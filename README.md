@@ -188,6 +188,7 @@ npm run seed
 | `npm run prisma:migrate` | Run database migrations |
 | `npm run prisma:studio` | Open Prisma Studio |
 | `npm run seed` | Seed database with sample data |
+| `npm run clean:db` | remove every record from the database |
 | `npm test` | Run test suite |
 | `npm run test:concurrency` | Run load tests |
 | `npm run typecheck` | Run TypeScript type checking (no emit) |
