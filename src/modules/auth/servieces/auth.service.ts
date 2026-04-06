@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { UnauthorizedException, NotFoundException } from "../../../utils/appError";
+import { UnauthorizedException, NotFoundException, ForbiddenException, InternalServerException } from "../../../utils/appError";
 import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validator";
 import { prisma } from "../../../config/prismaClient";
 import { compareHash, hashValue } from "../../../utils/bcrypt";
@@ -78,10 +78,9 @@ export const registerService = async (body: RegisterSchemaType) => {
 	return userResponse;
 };
 
-export const loginService = async (body: LoginSchemaType) => {
-	const { email, password } = body;
+export const loginService = async (body: LoginSchemaType, userAgent:string, ipAddress:string) => {
+	const { email, password, tabId } = body;
 
-	// 1. Find user (include password for validation)
 	const user = await prisma.userMaster.findUnique({
 		where: { email },
 		select: {
@@ -98,7 +97,6 @@ export const loginService = async (body: LoginSchemaType) => {
 		throw new NotFoundException("User not found!");
 	}
 
-	// 2. Compare password
 	const isValid = await compareHash(password, user.password);
 
 	if (!isValid) {
@@ -132,7 +130,74 @@ export const loginService = async (body: LoginSchemaType) => {
 		groupCode: groupCompany?.code ?? null,
 	};
 
-	return userResponse;
+	const userId = user.id as unknown as string;
+
+	const userActivity= await prisma.userActivity.findUnique({
+		where: {
+			userId,
+		}
+	})
+
+	if(userActivity) {
+		// Different browser (userAgent mismatch)
+		if (userActivity.userAgent !== userAgent) {
+		throw new ForbiddenException("You are already logged in on another browser.");
+		}
+
+		// Same browser but different tab (tabId mismatch)
+		if (userActivity.tabId !== tabId) {
+		throw new ForbiddenException("You are already logged in on another tab.");
+		}
+
+		// Same browser, same tab — already logged in
+		throw new ForbiddenException("You are already logged in.");
+	} 
+
+	const accessToken = generateAccessToken(userId);
+	const refreshToken = generateRefreshToken(userId);
+
+	const hashedToken = await hashValue(refreshToken, 10);
+
+	const newUserActivity= await prisma.userActivity.create({
+		data: {
+			userId,
+			token: hashedToken,
+			userAgent: userAgent,
+			tabId,
+			ip: ipAddress,
+		}
+	})
+
+	if(!newUserActivity) {
+		throw new InternalServerException("Something went wrong while logging-in. Please try again!")
+	}
+
+	// await prisma.userActivity.upsert({
+	// 	where: {
+	// 		userId: userId,
+	// 	},
+	// 	update: {
+	// 		token: hashedToken,
+	// 		userAgent: String(req.headers["user-agent"]),
+	// 		ip: req.ip,
+	// 	},
+	// 	create: {
+	// 		userId,
+	// 		token: hashedToken,
+	// 		userAgent: String(req.headers["user-agent"]),
+	// 		ip: req.ip,
+	// 	},
+	// });
+
+	// Exclude sensitive fields from response
+	const {
+		password: _password,
+		id: _id,
+		deletedAt: _deletedAt,
+		...userWithoutSensitiveData
+	} = userResponse;
+
+	return {userData: userWithoutSensitiveData, accessToken, refreshToken};
 };
 
 export const refreshTokenService = async (refreshToken: string) => {

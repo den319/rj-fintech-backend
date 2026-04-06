@@ -6,6 +6,7 @@ import { generateAccessToken, generateRefreshToken, setJwtAuthCookie } from "../
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
 import { hashValue } from "../../../utils/bcrypt";
+import { ForbiddenException, InternalServerException } from "../../../utils/appError";
 
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
 	const body = registerSchema.parse(req.body);
@@ -19,22 +20,22 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 
 	const hashedToken = await hashValue(refreshToken, 10);
 
-	await prisma.userActivity.upsert({
-		where: {
-			userId: userId,
-		},
-		update: {
-			token: hashedToken,
-			userAgent: String(req.headers["user-agent"]),
-			ip: req.ip,
-		},
-		create: {
-			userId,
-			token: hashedToken,
-			userAgent: String(req.headers["user-agent"]),
-			ip: req.ip,
-		},
-	});
+	// await prisma.userActivity.upsert({
+	// 	where: {
+	// 		userId: userId,
+	// 	},
+	// 	update: {
+	// 		token: hashedToken,
+	// 		userAgent: String(req.headers["user-agent"]),
+	// 		ip: req.ip,
+	// 	},
+	// 	create: {
+	// 		userId,
+	// 		token: hashedToken,
+	// 		userAgent: String(req.headers["user-agent"]),
+	// 		ip: req.ip,
+	// 	},
+	// });
 
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = user;
@@ -48,43 +49,15 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 export const loginController = asyncHandler(async (req: Request, res: Response) => {
 	const body = loginSchema.parse(req.body);
 
-	const user = await loginService(body);
+	const ip:string= req.ip ?? "unknown";
 
-	const userId = user.id as unknown as string;
+	const {userData, accessToken, refreshToken} = 
+		await loginService(body, String(req.headers["user-agent"]), ip);
 
-	const accessToken = generateAccessToken(userId);
-	const refreshToken = generateRefreshToken(userId);
-
-	const hashedToken = await hashValue(refreshToken, 10);
-
-	await prisma.userActivity.upsert({
-		where: {
-			userId: userId,
-		},
-		update: {
-			token: hashedToken,
-			userAgent: String(req.headers["user-agent"]),
-			ip: req.ip,
-		},
-		create: {
-			userId,
-			token: hashedToken,
-			userAgent: String(req.headers["user-agent"]),
-			ip: req.ip,
-		},
-	});
-
-	// Exclude sensitive fields from response
-	const {
-		password: _password,
-		id: _id,
-		deletedAt: _deletedAt,
-		...userWithoutSensitiveData
-	} = user;
 
 	return setJwtAuthCookie({ res, accessToken, refreshToken }).status(HTTP_STATUS.OK).json({
 		message: "User logged-in successfully!",
-		user: userWithoutSensitiveData,
+		user: userData,
 	});
 });
 

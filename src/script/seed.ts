@@ -124,17 +124,17 @@ async function seed() {
 	await prisma.userMapping.createMany({ data: userMappings });
 	console.log(`✅ Created ${userMappings.length} user mappings`);
 
-	// 6. Create User Activities (tokens)
-	console.log("\n🎫 Creating User Activities...");
-	const activities = [];
-	for (let i = 0; i < allUsers.length; i++) {
-		activities.push({
-			userId: allUsers[i].id,
-			token: `token_${allUsers[i].email.replace("@", "_")}_${Date.now()}`,
-		});
-	}
-	await prisma.userActivity.createMany({ data: activities });
-	console.log(`✅ Created ${activities.length} user activities`);
+	// // 6. Create User Activities (tokens)
+	// console.log("\n🎫 Creating User Activities...");
+	// const activities = [];
+	// for (let i = 0; i < allUsers.length; i++) {
+	// 	activities.push({
+	// 		userId: allUsers[i].id,
+	// 		token: `token_${allUsers[i].email.replace("@", "_")}_${Date.now()}`,
+	// 	});
+	// }
+	// await prisma.userActivity.createMany({ data: activities });
+	// console.log(`✅ Created ${activities.length} user activities`);
 
 	console.log("\n🏢 Creating a Single Company...");
 	await prisma.companyMaster.create({
@@ -157,7 +157,7 @@ async function seed() {
 	console.log(`   - Company Mappings: ${companyMappings.length}`);
 	console.log(`   - Users: ${allUsers.length}`);
 	console.log(`   - User Mappings: ${userMappings.length}`);
-	console.log(`   - User Activities: ${activities.length}`);
+	// console.log(`   - User Activities: ${activities.length}`);
 
 	await prisma.$disconnect();
 	process.exit(0);
