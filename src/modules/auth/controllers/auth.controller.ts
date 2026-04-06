@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../middlewares/asyncHandler.middleware";
 import { loginSchema, registerSchema } from "../validators/auth.validator";
-import { loginService, refreshTokenService, registerService } from "../servieces/auth.service";
-import { generateAccessToken, generateRefreshToken, setJwtAuthCookie } from "../../../utils/cookie";
+import { loginService, registerService } from "../servieces/auth.service";
+import { generateAccessToken, setJwtAuthCookie } from "../../../utils/cookie";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
 import { hashValue } from "../../../utils/bcrypt";
@@ -16,31 +16,13 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 	const userId = user.id as unknown as string;
 
 	const accessToken = generateAccessToken(userId);
-	const refreshToken = generateRefreshToken(userId);
 
-	const hashedToken = await hashValue(refreshToken, 10);
-
-	// await prisma.userActivity.upsert({
-	// 	where: {
-	// 		userId: userId,
-	// 	},
-	// 	update: {
-	// 		token: hashedToken,
-	// 		userAgent: String(req.headers["user-agent"]),
-	// 		ip: req.ip,
-	// 	},
-	// 	create: {
-	// 		userId,
-	// 		token: hashedToken,
-	// 		userAgent: String(req.headers["user-agent"]),
-	// 		ip: req.ip,
-	// 	},
-	// });
+	const hashedToken = await hashValue(accessToken, 10);
 
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = user;
 
-	return setJwtAuthCookie({ res, accessToken, refreshToken }).status(HTTP_STATUS.CREATED).json({
+	return setJwtAuthCookie({ res, accessToken }).status(HTTP_STATUS.CREATED).json({
 		message: "User created successfully!",
 		user: userWithoutSensitiveData,
 	});
@@ -51,11 +33,11 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 
 	const ip:string= req.ip ?? "unknown";
 
-	const {userData, accessToken, refreshToken} = 
+	const {userData, accessToken} = 
 		await loginService(body, String(req.headers["user-agent"]), ip);
 
 
-	return setJwtAuthCookie({ res, accessToken, refreshToken }).status(HTTP_STATUS.OK).json({
+	return setJwtAuthCookie({ res, accessToken }).status(HTTP_STATUS.OK).json({
 		message: "User logged-in successfully!",
 		user: userData,
 	});
@@ -86,7 +68,6 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 	}
 
 	res.clearCookie("accessToken", { path: "/" });
-	res.clearCookie("refreshToken", { path: "/" });
 
 	return res.status(HTTP_STATUS.OK).json({
 		message: "User logged-out successfully",
@@ -107,25 +88,4 @@ export const authStatusController = asyncHandler(async (req: Request, res: Respo
 		message: "Authenticated user",
 		user: userWithoutSensitiveData,
 	});
-});
-
-export const refreshTokenController = asyncHandler(async (req: Request, res: Response) => {
-	const refreshToken = req.cookies?.refreshToken;
-
-	console.log("user data: ", {
-		ip: req.ip,
-		userAgent: req.headers["user-agent"],
-	});
-
-	if (!refreshToken) {
-		return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "No refresh token!" });
-	}
-
-	const { newAccessToken, newRefreshToken } = await refreshTokenService(String(refreshToken));
-
-	return setJwtAuthCookie({ res, accessToken: newAccessToken, refreshToken: newRefreshToken })
-		.status(HTTP_STATUS.OK)
-		.json({
-			message: "Token refreshed successfully!",
-		});
 });

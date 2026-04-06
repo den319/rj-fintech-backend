@@ -3,7 +3,7 @@ import { UnauthorizedException, NotFoundException, ForbiddenException, InternalS
 import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validator";
 import { prisma } from "../../../config/prismaClient";
 import { compareHash, hashValue } from "../../../utils/bcrypt";
-import { generateAccessToken, generateRefreshToken } from "../../../utils/cookie";
+import { generateAccessToken } from "../../../utils/cookie";
 import { Env } from "../../../config/env.config";
 
 interface JwtPayload {
@@ -132,62 +132,63 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 
 	const userId = user.id as unknown as string;
 
-	const userActivity= await prisma.userActivity.findUnique({
-		where: {
-			userId,
-		}
-	})
+	// const userActivity= await prisma.userActivity.findUnique({
+	// 	where: {
+	// 		userId,
+	// 	}
+	// })
 
-	if(userActivity) {
-		// Different browser (userAgent mismatch)
-		if (userActivity.userAgent !== userAgent) {
-		throw new ForbiddenException("You are already logged in on another browser.");
-		}
+	// if(userActivity) {
+	// 	// console.log(userActivity);
 
-		// Same browser but different tab (tabId mismatch)
-		// if (userActivity.tabId !== tabId) {
-		// throw new ForbiddenException("You are already logged in on another tab.");
-		// }
+	// 	// Different browser (userAgent mismatch)
+	// 	if (userActivity.userAgent !== userAgent) {
+	// 	throw new ForbiddenException("You are already logged in on another browser.");
+	// 	}
 
-		// Same browser, same tab — already logged in
-		throw new ForbiddenException("You are already logged in.");
-	} 
+	// 	// Same browser but different tab (tabId mismatch)
+	// 	// if (userActivity.tabId !== tabId) {
+	// 	// throw new ForbiddenException("You are already logged in on another tab.");
+	// 	// }
+
+	// 	// Same browser, same tab — already logged in
+	// 	throw new ForbiddenException("You are already logged in.");
+	// } 
 
 	const accessToken = generateAccessToken(userId);
-	const refreshToken = generateRefreshToken(userId);
 
-	const hashedToken = await hashValue(refreshToken, 10);
+	const hashedToken = await hashValue(accessToken, 10);
 
-	const newUserActivity= await prisma.userActivity.create({
-		data: {
-			userId,
-			token: hashedToken,
-			userAgent: userAgent,
-			// tabId,
-			ip: ipAddress,
-		}
-	})
-
-	if(!newUserActivity) {
-		throw new InternalServerException("Something went wrong while logging-in. Please try again!")
-	}
-
-	// await prisma.userActivity.upsert({
-	// 	where: {
-	// 		userId: userId,
-	// 	},
-	// 	update: {
-	// 		token: hashedToken,
-	// 		userAgent: String(req.headers["user-agent"]),
-	// 		ip: req.ip,
-	// 	},
-	// 	create: {
+	// const newUserActivity= await prisma.userActivity.create({
+	// 	data: {
 	// 		userId,
 	// 		token: hashedToken,
-	// 		userAgent: String(req.headers["user-agent"]),
-	// 		ip: req.ip,
-	// 	},
-	// });
+	// 		userAgent: userAgent,
+	// 		// tabId,
+	// 		ip: ipAddress,
+	// 	}
+	// })
+
+	// if(!newUserActivity) {
+	// 	throw new InternalServerException("Something went wrong while logging-in. Please try again!")
+	// }
+
+	await prisma.userActivity.upsert({
+		where: {
+			userId: userId,
+		},
+		update: {
+			token: hashedToken,
+			userAgent,
+			ip: ipAddress,
+		},
+		create: {
+			userId,
+			token: hashedToken,
+			userAgent,
+			ip: ipAddress,
+		},
+	});
 
 	// Exclude sensitive fields from response
 	const {
@@ -197,49 +198,6 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 		...userWithoutSensitiveData
 	} = userResponse;
 
-	return {userData: userWithoutSensitiveData, accessToken, refreshToken};
+	return {userData: userWithoutSensitiveData, accessToken};
 };
 
-export const refreshTokenService = async (refreshToken: string) => {
-	const payload = jwt.verify(refreshToken, Env.JWT_REFRESH_SECRET) as JwtPayload;
-
-	if (!payload) {
-		throw new UnauthorizedException("Invalid token!");
-	}
-
-	const session = await prisma.userActivity.findUnique({
-		where: { userId: payload.userId },
-	});
-
-	if (!session) {
-		throw new UnauthorizedException("Session expired");
-	}
-
-	const isValid = await compareHash(refreshToken, session.token);
-
-	if (!isValid) {
-		console.error("TOKEN REUSE DETECTED for user:", payload.userId);
-
-		// CRITICAL ACTION: destroy session
-		await prisma.userActivity.delete({
-			where: { userId: payload.userId },
-		});
-
-		throw new UnauthorizedException("Invalid token");
-	}
-
-	// TOKEN ROTATION (VERY IMPORTANT)
-	const newAccessToken = generateAccessToken(payload.userId);
-	const newRefreshToken = generateRefreshToken(payload.userId);
-
-	const newHashedToken = await hashValue(newRefreshToken, 10);
-
-	await prisma.userActivity.update({
-		where: { userId: payload.userId },
-		data: {
-			token: newHashedToken,
-		},
-	});
-
-	return { newAccessToken, newRefreshToken };
-};

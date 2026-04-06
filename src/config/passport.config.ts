@@ -17,7 +17,7 @@ passport.use(
 		(req, payload, done) => {
 			findByIdUserService(payload.userId as string)
 				.then((user) => {
-					if (!user || user.deletedAt) {
+					if (!user) {
 						return done(new UnauthorizedException("User not found"), false);
 					}
 					return done(null, user);

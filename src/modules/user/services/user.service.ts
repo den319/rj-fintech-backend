@@ -42,12 +42,9 @@ export const findByIdUserService = async (userId: string) => {
 	return prisma.userMaster.findUnique({
 		where: { id: userId },
 		select: {
+			// id: true,
 			name: true,
 			email: true,
-			phone: true,
-			deletedAt: true,
-			createdAt: true,
-			updatedAt: true,
 		},
 	});
 };
