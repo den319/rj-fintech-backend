@@ -6,7 +6,9 @@ export const passwordSchema = z.string().trim().min(7);
 
 export const tabIdSchema= z.string().min(1);
 
-export const actionSchema= z.string().min(1);
+// export const actionSchema= z.string().min(1);
+export const actionSchema= z.enum(["0", "1"]);
+
 
 export const registerSchema = z.object({
 	name: z.string().trim().min(2),

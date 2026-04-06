@@ -81,7 +81,7 @@ export const registerService = async (body: RegisterSchemaType) => {
 export const loginService = async (body: LoginSchemaType, userAgent:string, ipAddress:string) => {
 	const { email, password, action } = body;
 
-	const forcedLogin= Boolean(action);
+	const forcedLogin= Number(action);
 
 	const user = await prisma.userMaster.findUnique({
 		where: { email },
@@ -104,11 +104,13 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 		}
 	})
 
-	if(userActivity && !forcedLogin) {
+	console.log({userActivity, forcedLogin, action})
+	if(userActivity && forcedLogin === 0) {
 		throw new ConflictException("User have already looged-in in another device!")
 	}
+
 	
-	if(forcedLogin) {
+	if(forcedLogin === 1) {
 		await prisma.userActivity.delete({
 			where: {
 				userId: user.id,
