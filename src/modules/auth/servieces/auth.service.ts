@@ -79,7 +79,7 @@ export const registerService = async (body: RegisterSchemaType) => {
 };
 
 export const loginService = async (body: LoginSchemaType, userAgent:string, ipAddress:string) => {
-	const { email, password, tabId } = body;
+	const { email, password } = body;
 
 	const user = await prisma.userMaster.findUnique({
 		where: { email },
@@ -145,9 +145,9 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 		}
 
 		// Same browser but different tab (tabId mismatch)
-		if (userActivity.tabId !== tabId) {
-		throw new ForbiddenException("You are already logged in on another tab.");
-		}
+		// if (userActivity.tabId !== tabId) {
+		// throw new ForbiddenException("You are already logged in on another tab.");
+		// }
 
 		// Same browser, same tab — already logged in
 		throw new ForbiddenException("You are already logged in.");
@@ -163,7 +163,7 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 			userId,
 			token: hashedToken,
 			userAgent: userAgent,
-			tabId,
+			// tabId,
 			ip: ipAddress,
 		}
 	})
