@@ -4,7 +4,9 @@ export const emailSchema = z.string().trim().email("Invalid email!").min(1);
 
 export const passwordSchema = z.string().trim().min(7);
 
-export const tabId= z.string().min(1);
+export const tabIdSchema= z.string().min(1);
+
+export const actionSchema= z.string().min(1);
 
 export const registerSchema = z.object({
 	name: z.string().trim().min(2),
@@ -15,7 +17,7 @@ export const registerSchema = z.object({
 export const loginSchema = z.object({
 	email: emailSchema,
 	password: passwordSchema,
-	// tabId 	
+	action: actionSchema 	
 });
 
 export type RegisterSchemaType = z.infer<typeof registerSchema>;

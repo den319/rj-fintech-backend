@@ -1,5 +1,5 @@
 import jwt from "jsonwebtoken";
-import { UnauthorizedException, NotFoundException, ForbiddenException, InternalServerException } from "../../../utils/appError";
+import { UnauthorizedException, NotFoundException, ForbiddenException, InternalServerException, ConflictException } from "../../../utils/appError";
 import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validator";
 import { prisma } from "../../../config/prismaClient";
 import { compareHash, hashValue } from "../../../utils/bcrypt";
@@ -79,7 +79,9 @@ export const registerService = async (body: RegisterSchemaType) => {
 };
 
 export const loginService = async (body: LoginSchemaType, userAgent:string, ipAddress:string) => {
-	const { email, password } = body;
+	const { email, password, action } = body;
+
+	const forcedLogin= Boolean(action);
 
 	const user = await prisma.userMaster.findUnique({
 		where: { email },
@@ -89,12 +91,29 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 			name: true,
 			email: true,
 			phone: true,
-			deletedAt: true,
 		},
 	});
 
-	if (!user || user.deletedAt) {
+	if (!user) {
 		throw new NotFoundException("User not found!");
+	}
+
+	const userActivity= await prisma.userActivity.findUnique({
+		where: {
+			userId: user.id,
+		}
+	})
+
+	if(userActivity && !forcedLogin) {
+		throw new ConflictException("User have already looged-in in another device!")
+	}
+	
+	if(forcedLogin) {
+		await prisma.userActivity.delete({
+			where: {
+				userId: user.id,
+			},
+		});
 	}
 
 	const isValid = await compareHash(password, user.password);
@@ -130,71 +149,25 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 		groupCode: groupCompany?.code ?? null,
 	};
 
-	const userId = user.id as unknown as string;
-
-	// const userActivity= await prisma.userActivity.findUnique({
-	// 	where: {
-	// 		userId,
-	// 	}
-	// })
-
-	// if(userActivity) {
-	// 	// console.log(userActivity);
-
-	// 	// Different browser (userAgent mismatch)
-	// 	if (userActivity.userAgent !== userAgent) {
-	// 	throw new ForbiddenException("You are already logged in on another browser.");
-	// 	}
-
-	// 	// Same browser but different tab (tabId mismatch)
-	// 	// if (userActivity.tabId !== tabId) {
-	// 	// throw new ForbiddenException("You are already logged in on another tab.");
-	// 	// }
-
-	// 	// Same browser, same tab — already logged in
-	// 	throw new ForbiddenException("You are already logged in.");
-	// } 
+	const userId = user.id as string;
 
 	const accessToken = generateAccessToken(userId);
 
 	const hashedToken = await hashValue(accessToken, 10);
 
-	// const newUserActivity= await prisma.userActivity.create({
-	// 	data: {
-	// 		userId,
-	// 		token: hashedToken,
-	// 		userAgent: userAgent,
-	// 		// tabId,
-	// 		ip: ipAddress,
-	// 	}
-	// })
-
-	// if(!newUserActivity) {
-	// 	throw new InternalServerException("Something went wrong while logging-in. Please try again!")
-	// }
-
-	await prisma.userActivity.upsert({
-		where: {
-			userId: userId,
-		},
-		update: {
-			token: hashedToken,
-			userAgent,
-			ip: ipAddress,
-		},
-		create: {
+	await prisma.userActivity.create({
+		data: {
 			userId,
 			token: hashedToken,
 			userAgent,
 			ip: ipAddress,
-		},
-	});
+		}
+	})
 
 	// Exclude sensitive fields from response
 	const {
 		password: _password,
 		id: _id,
-		deletedAt: _deletedAt,
 		...userWithoutSensitiveData
 	} = userResponse;
 

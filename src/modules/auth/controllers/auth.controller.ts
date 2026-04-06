@@ -6,7 +6,6 @@ import { generateAccessToken, setJwtAuthCookie } from "../../../utils/cookie";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
 import { hashValue } from "../../../utils/bcrypt";
-import { ForbiddenException, InternalServerException } from "../../../utils/appError";
 
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
 	const body = registerSchema.parse(req.body);
@@ -74,18 +73,3 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 	});
 });
 
-export const authStatusController = asyncHandler(async (req: Request, res: Response) => {
-	if (!req.user) {
-		return res.status(HTTP_STATUS.UNAUTHORIZED).json({
-			message: "User not authenticated",
-		});
-	}
-
-	// Exclude sensitive fields from response
-	const { password: _password, id: _id, ...userWithoutSensitiveData } = req.user;
-
-	return res.status(HTTP_STATUS.OK).json({
-		message: "Authenticated user",
-		user: userWithoutSensitiveData,
-	});
-});
