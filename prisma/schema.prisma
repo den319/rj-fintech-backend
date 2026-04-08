@@ -66,12 +66,14 @@ model GroupCompanyMaster {
 model UserActivity {
   id         String   @id @default(uuid())
   token      String
+  version    String
   userId     String   @unique
   userAgent  String
   ip         String
   tabId      String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  expireAt   DateTime
 
   // Relation
   // user       UserMaster @relation(fields: [userId], references: [id], onDelete: Cascade)

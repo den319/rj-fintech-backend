@@ -14,4 +14,6 @@ export const Env = {
 	FRONTEND_ORIGIN: getEnv("FRONTEND_ORIGIN", "http://localhost:5173"),
 	RATE_LIMIT_MAX: getEnv("RATE_LIMIT_MAX", "100"),
 	RATE_LIMIT_WINDOW: getEnv("RATE_LIMIT_WINDOW", "60000"),
+	ENCRYPTION_ALGORITHM: getEnv("ENCRYPTION_ALGORITHM", "aes-256-gcm"),
+
 } as const;

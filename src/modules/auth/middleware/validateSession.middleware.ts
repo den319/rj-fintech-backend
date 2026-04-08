@@ -5,7 +5,7 @@ import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
 import { getEnv } from "../../../utils/getEnv";
 import { AppError } from "../../../utils/appError";
-import { compareHash } from "../../../utils/bcrypt";
+import { compareHash } from "../../../utils/argon";
 
 export const validateSessionMiddleware = asyncHandler(
 	async (req: Request, res: Response, next: NextFunction) => {
@@ -16,6 +16,13 @@ export const validateSessionMiddleware = asyncHandler(
 		}
 
 		try {
+
+			const version= req.cookies.version;
+			if(!version) {
+				return res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: "Expired version!" });
+			}
+
+
 			const decoded = jwt.verify(accessToken, getEnv("JWT_SECRET")) as { userId: string };
 
 			if (!decoded?.userId) {
@@ -43,10 +50,13 @@ export const validateSessionMiddleware = asyncHandler(
 
 			return next();
 		} catch (error) {
-			if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
-				throw new AppError(`Invalid or expired token: ${error}`, HTTP_STATUS.UNAUTHORIZED);
+			if (error instanceof jwt.JsonWebTokenError) {
+				throw new AppError(`Invalid token: ${error}`, HTTP_STATUS.UNAUTHORIZED);
 			}
 
+			if(error instanceof jwt.TokenExpiredError) {
+
+			}
 			throw error;
 		}
 	}

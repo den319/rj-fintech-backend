@@ -1,20 +1,15 @@
-import jwt from "jsonwebtoken";
 import {
 	UnauthorizedException,
 	NotFoundException,
-	ForbiddenException,
 	InternalServerException,
 	ConflictException,
 } from "../../../utils/appError";
 import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validator";
 import { prisma } from "../../../config/prismaClient";
-import { compareHash, hashValue } from "../../../utils/bcrypt";
+import { compareHash, hashValue } from "../../../utils/argon";
 import { generateAccessToken } from "../../../utils/cookie";
-import { Env } from "../../../config/env.config";
+import { encrypt, generateToken } from "../../../utils/utils";
 
-interface JwtPayload {
-	userId: string;
-}
 
 export const registerService = async (body: RegisterSchemaType) => {
 	const { email, name, password } = body;
@@ -36,7 +31,7 @@ export const registerService = async (body: RegisterSchemaType) => {
 	}
 
 	// 2. Hash password
-	const hashedPassword = await hashValue(password, 10);
+	const hashedPassword = await hashValue(password);
 
 	// 3. Create user
 	const newUser = await prisma.userMaster.create({
@@ -89,6 +84,8 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const forcedLogin = Number(action);
 
+	let version:number=1;
+	
 	const user = await prisma.userMaster.findUnique({
 		where: { email },
 		select: {
@@ -115,13 +112,30 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 		throw new ConflictException("User have already looged-in in another device!");
 	}
 
+	const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
 	if (forcedLogin === 1) {
 		if (userActivity) {
-			await prisma.userActivity.delete({
-				where: {
-					userId: user.id,
-				},
-			});
+			const oldVersion= userActivity.version.split("-");
+
+			let newVersion= Number(oldVersion[1]);
+
+			if(!Number.isNaN(newVersion)) {
+				version= newVersion;
+
+				await prisma.userActivity.update({
+					where: {
+						userId: user.id,
+					},
+					data: {
+						version: `v-${newVersion++}`,
+						expireAt
+					}
+				});
+			} else {
+				throw new InternalServerException("The format of 'version' is invalid!")
+			}
+
 		}
 	}
 
@@ -162,19 +176,27 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const accessToken = generateAccessToken(userId);
 
-	const hashedToken = await hashValue(accessToken, 10);
+	const refreshToken = generateToken();
 
-	await prisma.userActivity.create({
-		data: {
-			userId,
-			token: hashedToken,
-			userAgent,
-			ip: ipAddress,
-		},
-	});
+	const hashedToken= await hashValue(refreshToken);
+
+	if(!userActivity) {
+		await prisma.userActivity.create({
+		   data: {
+			   userId,
+			   token: hashedToken,
+			   userAgent,
+			   ip: ipAddress,
+			   version: 'v-1',
+			   expireAt,
+		   },
+	   });
+	}
+
+	const encryptedVersion= encrypt(`v-${version}`);
 
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = userResponse;
 
-	return { userData: userWithoutSensitiveData, accessToken };
+	return { userData: userWithoutSensitiveData, accessToken, refreshToken, encryptedVersion };
 };

@@ -1,6 +1,6 @@
 import argon2 from "argon2";
 
-export const hashValue = async (password: string, salt: number = 10) => {
+export const hashValue = async (password: string) => {
 	return argon2.hash(password, {
 		type: argon2.argon2id,
 		memoryCost: 65536,

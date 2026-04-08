@@ -5,7 +5,7 @@ import { loginService, registerService } from "../servieces/auth.service";
 import { generateAccessToken, setJwtAuthCookie } from "../../../utils/cookie";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
-import { hashValue } from "../../../utils/bcrypt";
+import { hashValue } from "../../../utils/argon";
 
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
 	const body = registerSchema.parse(req.body);
@@ -16,12 +16,15 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 
 	const accessToken = generateAccessToken(userId);
 
-	const hashedToken = await hashValue(accessToken, 10);
+	const hashedToken = await hashValue(accessToken);
+
+	let refreshToken= "";
+	let version="";
 
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = user;
 
-	return setJwtAuthCookie({ res, accessToken }).status(HTTP_STATUS.CREATED).json({
+	return setJwtAuthCookie({ res, accessToken, refreshToken, version }).status(HTTP_STATUS.CREATED).json({
 		message: "User created successfully!",
 		user: userWithoutSensitiveData,
 	});
@@ -32,13 +35,13 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 
 	const ip: string = req.ip ?? "unknown";
 
-	const { userData, accessToken } = await loginService(
+	const { userData, accessToken, refreshToken, encryptedVersion } = await loginService(
 		body,
 		String(req.headers["user-agent"]),
 		ip
 	);
 
-	return setJwtAuthCookie({ res, accessToken }).status(HTTP_STATUS.OK).json({
+	return setJwtAuthCookie({ res, accessToken, refreshToken, version:encryptedVersion }).status(HTTP_STATUS.OK).json({
 		message: "User logged-in successfully!",
 		user: userData,
 	});
@@ -69,6 +72,9 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 	}
 
 	res.clearCookie("accessToken", { path: "/" });
+	res.clearCookie("refreshToken", { path: "/" });
+	res.clearCookie("version", { path: "/" });
+
 
 	return res.status(HTTP_STATUS.OK).json({
 		message: "User logged-out successfully",

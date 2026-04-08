@@ -1,5 +1,5 @@
 import { prisma } from "../config/prismaClient";
-import { hashValue } from "../utils/bcrypt";
+import { hashValue } from "../utils/argon";
 
 async function seed() {
 	console.log("🌱 Seeding database...");
@@ -99,7 +99,7 @@ async function seed() {
 		{ name: "Frank Miller", email: "test6@gmail.com", phone: "+1234567895" },
 	];
 
-	const hashedPassword = await hashValue("password", 10);
+	const hashedPassword = await hashValue("password");
 	const users = await prisma.userMaster.createMany({
 		data: usersData.map((userData) => ({
 			...userData,

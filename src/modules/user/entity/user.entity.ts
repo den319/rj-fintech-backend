@@ -1,4 +1,4 @@
-import { hashValue, compareHash } from "../../../utils/bcrypt";
+import { hashValue, compareHash } from "../../../utils/argon";
 export class User {
 	id!: string;
 	name!: string;
@@ -7,6 +7,7 @@ export class User {
 	password!: string;
 	createdAt!: Date;
 	updatedAt!: Date;
+	deletedAt!: Date;
 
 	constructor(data: Partial<User>) {
 		Object.assign(this, data);

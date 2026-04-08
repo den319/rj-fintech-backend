@@ -6,18 +6,9 @@ type Time = `${number}${"s" | "m" | "h" | "d" | "w" | "y"}`;
 type Cookie = {
 	res: Response;
 	accessToken: string;
+	refreshToken:string;
+	version:string;
 };
-
-// export const generateJwtToken = (userId: string) => {
-//   return jwt.sign(
-//     { userId },
-//     Env.JWT_SECRET,
-//     {
-//       audience: ["user"],
-//       expiresIn: Env.JWT_EXPIRES_IN as Time ?? "7d",
-//     }
-//   );
-// };
 
 export const generateAccessToken = (userId: string) => {
 	return jwt.sign({ userId }, Env.JWT_SECRET, {
@@ -26,13 +17,27 @@ export const generateAccessToken = (userId: string) => {
 	});
 };
 
-export const setJwtAuthCookie = ({ res, accessToken }: Cookie) => {
+export const setJwtAuthCookie = ({ res, accessToken, refreshToken, version }: Cookie) => {
 	res.cookie("accessToken", accessToken, {
-		maxAge: 15 * 60 * 1000,
+		maxAge: 15 * 60 * 1000, // 15 minutes
 		httpOnly: true,
 		secure: Env.NODE_ENV === "production",
 		sameSite: Env.NODE_ENV === "production" ? "strict" : "lax",
 	});
+
+	res.cookie("refreshToken", refreshToken, {
+		maxAge: 24 * 60 * 60 * 1000, // 24 hours
+		httpOnly: true,
+		secure: Env.NODE_ENV === "production",
+		sameSite: Env.NODE_ENV === "production" ? "strict" : "lax",
+	})
+
+	res.cookie("version", version, {
+		maxAge: 24 * 60 * 60 * 1000, // 24 hours
+		httpOnly: true,
+		secure: Env.NODE_ENV === "production",
+		sameSite: Env.NODE_ENV === "production" ? "strict" : "lax",
+	})
 
 	return res;
 };
