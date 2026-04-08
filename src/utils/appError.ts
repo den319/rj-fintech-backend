@@ -6,7 +6,7 @@ export const ErrorCode = {
 	ERR_UNAUTHORIZED: "ERR_UNAUTHORIZED",
 	ERR_FORBIDDEN: "ERR_FORBIDDEN",
 	ERR_NOT_FOUND: "ERR_NOT_FOUND",
-	ERR_CONFLICT: "ERR_CONFLICT"
+	ERR_CONFLICT: "ERR_CONFLICT",
 } as const;
 
 export type ErrorCodeType = keyof typeof ErrorCode;

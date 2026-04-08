@@ -1,5 +1,11 @@
 import jwt from "jsonwebtoken";
-import { UnauthorizedException, NotFoundException, ForbiddenException, InternalServerException, ConflictException } from "../../../utils/appError";
+import {
+	UnauthorizedException,
+	NotFoundException,
+	ForbiddenException,
+	InternalServerException,
+	ConflictException,
+} from "../../../utils/appError";
 import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validator";
 import { prisma } from "../../../config/prismaClient";
 import { compareHash, hashValue } from "../../../utils/bcrypt";
@@ -78,10 +84,10 @@ export const registerService = async (body: RegisterSchemaType) => {
 	return userResponse;
 };
 
-export const loginService = async (body: LoginSchemaType, userAgent:string, ipAddress:string) => {
+export const loginService = async (body: LoginSchemaType, userAgent: string, ipAddress: string) => {
 	const { email, password, action } = body;
 
-	const forcedLogin= Number(action);
+	const forcedLogin = Number(action);
 
 	const user = await prisma.userMaster.findUnique({
 		where: { email },
@@ -98,20 +104,19 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 		throw new NotFoundException("User not found!");
 	}
 
-	const userActivity= await prisma.userActivity.findUnique({
+	const userActivity = await prisma.userActivity.findUnique({
 		where: {
 			userId: user.id,
-		}
-	})
+		},
+	});
 
-	console.log({userActivity, forcedLogin, action})
-	if(userActivity && forcedLogin === 0) {
-		throw new ConflictException("User have already looged-in in another device!")
+	console.log({ userActivity, forcedLogin, action });
+	if (userActivity && forcedLogin === 0) {
+		throw new ConflictException("User have already looged-in in another device!");
 	}
 
-	
-	if(forcedLogin === 1) {
-		if(userActivity) {
+	if (forcedLogin === 1) {
+		if (userActivity) {
 			await prisma.userActivity.delete({
 				where: {
 					userId: user.id,
@@ -153,7 +158,7 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 		groupCode: groupCompany?.code ?? null,
 	};
 
-	const userId = user.id as string;
+	const userId = user.id;
 
 	const accessToken = generateAccessToken(userId);
 
@@ -165,16 +170,11 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 			token: hashedToken,
 			userAgent,
 			ip: ipAddress,
-		}
-	})
+		},
+	});
 
 	// Exclude sensitive fields from response
-	const {
-		password: _password,
-		id: _id,
-		...userWithoutSensitiveData
-	} = userResponse;
+	const { password: _password, id: _id, ...userWithoutSensitiveData } = userResponse;
 
-	return {userData: userWithoutSensitiveData, accessToken};
+	return { userData: userWithoutSensitiveData, accessToken };
 };
-

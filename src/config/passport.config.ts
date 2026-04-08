@@ -14,8 +14,9 @@ passport.use(
 			algorithms: ["HS256"],
 			passReqToCallback: true,
 		},
-		async(req, payload, done) => {
-				await prisma.userMaster.findUnique({
+		async (req, payload, done) => {
+			await prisma.userMaster
+				.findUnique({
 					where: { id: payload.userId },
 				})
 				.then((user) => {

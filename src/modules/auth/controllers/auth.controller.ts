@@ -30,11 +30,13 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 export const loginController = asyncHandler(async (req: Request, res: Response) => {
 	const body = loginSchema.parse(req.body);
 
-	const ip:string= req.ip ?? "unknown";
+	const ip: string = req.ip ?? "unknown";
 
-	const {userData, accessToken} = 
-		await loginService(body, String(req.headers["user-agent"]), ip);
-
+	const { userData, accessToken } = await loginService(
+		body,
+		String(req.headers["user-agent"]),
+		ip
+	);
 
 	return setJwtAuthCookie({ res, accessToken }).status(HTTP_STATUS.OK).json({
 		message: "User logged-in successfully!",
@@ -43,7 +45,7 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 });
 
 export const logoutController = asyncHandler(async (req: Request, res: Response) => {
-	console.log(req.user)
+	console.log(req.user);
 
 	const token = req.cookies?.accessToken;
 	const userEmail = req.user?.email;
@@ -52,13 +54,13 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 		return res.status(HTTP_STATUS.OK).json({ message: "Already logged out" });
 	}
 
-	const user= await prisma.userMaster.findUnique({
+	const user = await prisma.userMaster.findUnique({
 		where: {
-			email: userEmail
-		}
+			email: userEmail,
+		},
 	});
-	
-	if(user) {
+
+	if (user) {
 		await prisma.userActivity.delete({
 			where: {
 				userId: user.id,
@@ -88,4 +90,3 @@ export const authStatusController = asyncHandler(async (req: Request, res: Respo
 		user: userWithoutSensitiveData,
 	});
 });
-
