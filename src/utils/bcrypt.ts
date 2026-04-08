@@ -1,9 +1,14 @@
-import bcrypt from "bcryptjs";
+import argon2 from "argon2";
 
-export const hashValue = async (val: string, salt: number = 10) => {
-	return await bcrypt.hash(val, salt);
+export const hashValue = async (password: string, salt: number = 10) => {
+	return argon2.hash(password, {
+		type: argon2.argon2id,
+		memoryCost: 65536,
+		timeCost: 3,
+		parallelism: 1,
+	});
 };
 
-export const compareHash = async (val: string, hash: string) => {
-	return await bcrypt.compare(val, hash);
+export const compareHash = async (password: string, hash: string) => {
+	return argon2.verify(hash, password);
 };

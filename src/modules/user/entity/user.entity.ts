@@ -1,21 +1,10 @@
 import { hashValue, compareHash } from "../../../utils/bcrypt";
-
-export enum UserRole {
-	ADMIN = "ADMIN",
-}
-
-export interface UserPayload {
-	id: string;
-	email: string;
-	role: UserRole;
-}
-
 export class User {
 	id!: string;
 	name!: string;
 	email!: string;
+	phone!:string;
 	password!: string;
-	role!: UserRole;
 	createdAt!: Date;
 	updatedAt!: Date;
 

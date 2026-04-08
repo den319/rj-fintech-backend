@@ -111,11 +111,13 @@ export const loginService = async (body: LoginSchemaType, userAgent:string, ipAd
 
 	
 	if(forcedLogin === 1) {
-		await prisma.userActivity.delete({
-			where: {
-				userId: user.id,
-			},
-		});
+		if(userActivity) {
+			await prisma.userActivity.delete({
+				where: {
+					userId: user.id,
+				},
+			});
+		}
 	}
 
 	const isValid = await compareHash(password, user.password);
