@@ -39,9 +39,11 @@ export const validateSessionMiddleware = asyncHandler(async (req: Request, res: 
     return next();
 
   } catch (error) {
+
     if (error instanceof jwt.JsonWebTokenError || error instanceof jwt.TokenExpiredError) {
-      throw new AppError("Invalid or expired token", HTTP_STATUS.UNAUTHORIZED);
+      throw new AppError(`Invalid or expired token: ${error}`, HTTP_STATUS.UNAUTHORIZED);
     }
+    
     throw error;
   }
 });

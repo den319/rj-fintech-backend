@@ -1,9 +1,9 @@
 import passport from "passport";
 import { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import { UnauthorizedException } from "../utils/appError";
-import { findByIdUserService } from "../modules/user/services/user.service";
 import { Env } from "./env.config";
 import { RequestHandler } from "express";
+import { prisma } from "./prismaClient";
 
 passport.use(
 	new JwtStrategy(
@@ -14,8 +14,10 @@ passport.use(
 			algorithms: ["HS256"],
 			passReqToCallback: true,
 		},
-		(req, payload, done) => {
-			findByIdUserService(payload.userId as string)
+		async(req, payload, done) => {
+				await prisma.userMaster.findUnique({
+					where: { id: payload.userId },
+				})
 				.then((user) => {
 					if (!user) {
 						return done(new UnauthorizedException("User not found"), false);
