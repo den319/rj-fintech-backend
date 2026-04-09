@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { getAllCompanies } from "../controllers/company.controller";
-import { passportAuthenticateJwt } from "../../../config/passport.config";
+import { validateSessionMiddleware } from "../../auth/middleware/validateSession.middleware";
 
-const companyRoutes = Router().post("/all", passportAuthenticateJwt, getAllCompanies);
+const companyRoutes = Router().post("/all", validateSessionMiddleware, getAllCompanies);
 
 export default companyRoutes;

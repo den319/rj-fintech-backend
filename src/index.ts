@@ -11,8 +11,6 @@ import routes from "./routes";
 import http from "http";
 import { prisma } from "./config/prismaClient";
 
-import "./config/passport.config";
-
 export const app = express();
 
 const server = http.createServer(app);

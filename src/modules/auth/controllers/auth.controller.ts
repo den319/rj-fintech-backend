@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../../middlewares/asyncHandler.middleware";
 import { loginSchema, registerSchema } from "../validators/auth.validator";
 import { loginService, registerService } from "../servieces/auth.service";
-import { generateAccessToken, setJwtAuthCookie } from "../../../utils/cookie";
+import { generateAccessToken, removeAuthCookies, setJwtAuthCookie } from "../../../utils/cookie";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
 import { hashValue } from "../../../utils/argon";
@@ -71,9 +71,7 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 		});
 	}
 
-	res.clearCookie("accessToken", { path: "/" });
-	res.clearCookie("refreshToken", { path: "/" });
-	res.clearCookie("version", { path: "/" });
+	removeAuthCookies(res);
 
 
 	return res.status(HTTP_STATUS.OK).json({

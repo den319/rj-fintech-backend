@@ -1,6 +1,7 @@
 import { v7 as uuidv7 } from "uuid";
 import crypto from "crypto";
 import { Env } from "../config/env.config";
+import { Response } from "express";
 
 
 export const generateUUID = () => uuidv7();
@@ -13,6 +14,7 @@ export const generateToken = () => {
 const algorithm = Env.ENCRYPTION_ALGORITHM;
 const key = Buffer.from(Env.JWT_SECRET!, "hex"); // 32 bytes
 
+// to encrypt version
 export const encrypt = (text: string) => {
   const iv = crypto.randomBytes(12);
 
@@ -28,6 +30,7 @@ export const encrypt = (text: string) => {
   return Buffer.concat([iv, tag, encrypted]).toString("base64");
 };
 
+// to decrypt version
 export const decrypt = (data: string) => {
   const bData = Buffer.from(data, "base64");
 
