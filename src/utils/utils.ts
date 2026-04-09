@@ -12,7 +12,10 @@ export const generateToken = () => {
 };
 
 const algorithm = Env.ENCRYPTION_ALGORITHM;
-const key = Buffer.from(Env.JWT_SECRET!, "hex"); // 32 bytes
+const key = crypto
+  .createHash("sha256")
+  .update(String(Env.JWT_SECRET))
+  .digest(); // 32 bytes
 
 // to encrypt version
 export const encrypt = (text: string) => {

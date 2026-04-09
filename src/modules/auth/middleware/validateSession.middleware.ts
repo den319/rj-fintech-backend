@@ -91,12 +91,12 @@ export const validateSessionMiddleware = asyncHandler(
 
 				}
 
-				const version= req.cookies.version;
 				if(!version) {
 					return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Expired version!");
 					
 				}
 
+				// console.log(version, userActivity?.version)
 				if(version !== userActivity?.version) {
 					return rejectSession(res, HTTP_STATUS.CONFLICT, "Version mismatch!");
 
@@ -114,8 +114,9 @@ export const validateSessionMiddleware = asyncHandler(
 						"Session expired. Please login again."
 					);
 				}
-
+				
 				const isTokenValid = await compareHash(refreshToken, userActivity.token);
+				// console.log(refreshToken, userActivity?.token, isTokenValid)
 
 				if (!isTokenValid) {
 					return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Invalid session. Please login again.");

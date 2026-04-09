@@ -114,6 +114,11 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
+
+	const refreshToken = generateToken();
+
+	const hashedToken= await hashValue(refreshToken);
+
 	if (forcedLogin === 1) {
 		if (userActivity) {
 			const oldVersion= userActivity.version.split("-");
@@ -129,7 +134,10 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 					},
 					data: {
 						version: `v-${newVersion++}`,
-						expireAt
+						token: hashedToken,
+						expireAt,
+						userAgent,
+						ip: ipAddress,
 					}
 				});
 			} else {
@@ -175,10 +183,6 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 	const userId = user.id;
 
 	const accessToken = generateAccessToken(userId);
-
-	const refreshToken = generateToken();
-
-	const hashedToken= await hashValue(refreshToken);
 
 	if(!userActivity) {
 		await prisma.userActivity.create({
