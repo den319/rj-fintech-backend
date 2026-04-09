@@ -6,10 +6,12 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+  previewFeatures = ["postgresqlExtensions"]
 }
 
 datasource db {
   provider = "postgresql"
+  extensions = [ltree]
 }
 
 model UserMaster {
@@ -32,17 +34,19 @@ model UserMaster {
 }
 
 model CompanyMaster {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @db.Uuid
   gst        String?  @unique
   legalName  String
   address    String
   registeredAt DateTime
   brand      String?
-  companyCode String
+  companyCode String @unique
   ieCode String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?
+
+  orgStructure OrgStructure[]
 
   // Relations
   // users        UserMapping[]
@@ -107,4 +111,24 @@ model CompanyMapping {
 
   @@id([companyId, groupCompanyId]) // composite primary key
   @@index([groupCompanyId])
+}
+
+model OrgStructure {
+  id        String   @id @default(uuid()) @db.Uuid
+  nodeName  String  
+  nodeType  String   
+  
+  // Ltree configuration
+  nodePath  Unsupported("ltree") 
+  
+  // Relations
+  companyId String    @db.Uuid
+  company   CompanyMaster @relation(fields: [companyId], references: [id])
+
+  parentId  String?   @db.Uuid
+  parent    OrgStructure?  @relation("ParentChild", fields: [parentId], references: [id])
+  children  OrgStructure[] @relation("ParentChild")
+
+  // GiST index is essential for ltree performance
+  @@index([nodePath], map: "node_path_gist_idx", type: Gist)
 }
