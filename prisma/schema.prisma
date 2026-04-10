@@ -14,8 +14,13 @@ datasource db {
   extensions = [ltree]
 }
 
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+}
+
 model UserMaster {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @db.Uuid
   name       String
   email      String   @unique
   password   String
@@ -24,9 +29,8 @@ model UserMaster {
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?
 
-  // Relations
-  // activities   UserActivity[]
-  // companies    UserMapping[]
+  companies UserMapping[]
+  managedMappings  UserMapping[] @relation("ManagerToSubordinate")
 
   @@index([email])
   @@index([id])
@@ -46,32 +50,28 @@ model CompanyMaster {
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?
 
-  orgStructure OrgStructure[]
+  users UserMapping[]
 
-  // Relations
-  // users        UserMapping[]
-  // groupLinks   CompanyMapping[]
+  orgStructure OrgStructure[]
 
 }
 
 model GroupCompanyMaster {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @db.Uuid
   name       String
   code       String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?
 
-  // Relations
-  // companies   CompanyMapping[]
 
 }
 
 model UserActivity {
-  id         String   @id @default(uuid())
+  id         String   @id @default(uuid()) @db.Uuid
   token      String
   version    String
-  userId     String   @unique
+  userId     String   @unique @db.Uuid
   userAgent  String
   ip         String
   tabId      String?
@@ -79,35 +79,34 @@ model UserActivity {
   updatedAt  DateTime @updatedAt
   expireAt   DateTime
 
-  // Relation
-  // user       UserMaster @relation(fields: [userId], references: [id], onDelete: Cascade)
-
   @@index([userId])
 }
 
 model UserMapping {
-  userId     String
-  companyId  String
+  userId     String @db.Uuid
+  companyId  String @db.Uuid
+
+  reportingManagerId String @db.Uuid
+  status             UserStatus @default(ACTIVE)
+  designation        String?  
+  employeeId         String?    @unique
+
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 
-  // Relations
-  // user     UserMaster    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  // company  CompanyMaster @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user    UserMaster    @relation(fields: [userId], references: [id])
+  company CompanyMaster @relation(fields: [companyId], references: [id])
+  reportingManager   UserMaster   @relation("ManagerToSubordinate", fields: [reportingManagerId], references: [id])
 
   @@id([userId, companyId])
   @@index([companyId])
 }
 
 model CompanyMapping {
-  companyId        String
-  groupCompanyId   String
+  companyId        String @db.Uuid
+  groupCompanyId   String @db.Uuid
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
-
-  // Relations
-  // company       CompanyMaster       @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  // groupCompany  GroupCompanyMaster @relation(fields: [groupCompanyId], references: [id], onDelete: Cascade)
 
   @@id([companyId, groupCompanyId]) // composite primary key
   @@index([groupCompanyId])

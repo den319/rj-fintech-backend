@@ -1,5 +1,14 @@
+/*
+	NOTE:
+	-- Please run 'npm run prisma:save'
+	-- if it is not working then run 'npm run prisma:generate' and then run 'npm run prisma:migrate'
+	-- after it run 'npm run seed'
+*/
+
 import { prisma } from "../config/prismaClient";
+import { UserStatus } from "../generated/prisma/enums";
 import { hashValue } from "../utils/argon";
+
 
 async function seed() {
 	console.log("🌱 Seeding database...");
@@ -117,9 +126,14 @@ async function seed() {
 	const userMappings = [];
 	for (let i = 0; i < allUsers.length; i++) {
 		const company = allCompanies[i % allCompanies.length];
+		const managerId = i === 0 ? allUsers[0].id : allUsers[0].id;
 		userMappings.push({
 			userId: allUsers[i].id,
 			companyId: company.id,
+			reportingManagerId: managerId, // Now mandatory
+			status: UserStatus.ACTIVE,
+			designation: 'Employee',
+			employeeId: `EMP-${i}`
 		});
 	}
 	await prisma.userMapping.createMany({ data: userMappings });
