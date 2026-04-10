@@ -2,6 +2,14 @@ import { prisma } from "../../../config/prismaClient";
 import { UserMaster } from "../../../generated/prisma/client";
 import { NotFoundException, UnauthorizedException } from "../../../utils/appError";
 
+export type OrgStructureResult = {
+  nodeName: string;
+  nodeType: string;
+  companyId: string;
+  parentId: string | null;
+  nodePath: string; // The ltree gets cast to a string
+};
+
 export const getOrgStructureService= async(companyCode:string, user:UserMaster) => {
 
     const company = await prisma.companyMaster.findUnique({
@@ -24,11 +32,16 @@ export const getOrgStructureService= async(companyCode:string, user:UserMaster) 
         throw new UnauthorizedException("User cannot access this organization.")
     }
 
-    const orgData = await prisma.orgStructure.findMany({
-      where: {
-        companyId: company.id,
-      },
-    });
+const orgData = await prisma.$queryRaw<OrgStructureResult[]>`
+      SELECT 
+        "nodeName", 
+        "nodeType", 
+        "companyId", 
+        "parentId", 
+        "nodePath"::text AS "nodePath"
+      FROM "OrgStructure"
+      WHERE "companyId" = ${company.id}::uuid
+    `;
 
     return orgData;
 }

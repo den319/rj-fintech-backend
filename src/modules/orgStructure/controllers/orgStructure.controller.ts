@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { asyncHandler } from "../../../middlewares/asyncHandler.middleware";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { getOrgStructureService } from "../services/orgStructure.service";
-import { error } from "console";
 
 export const getOrgStructureController = asyncHandler(async (req: Request, res: Response) => {
 
