@@ -6,9 +6,14 @@
 */
 
 import { prisma } from "../config/prismaClient";
-import { AccessType, Category, PermissionLevel, SubCategory, UserStatus } from "../generated/prisma/enums";
+import {
+	AccessType,
+	Category,
+	PermissionLevel,
+	SubCategory,
+	UserStatus,
+} from "../generated/prisma/enums";
 import { hashValue } from "../utils/argon";
-
 
 async function seed() {
 	console.log("🌱 Seeding database...");
@@ -121,41 +126,161 @@ async function seed() {
 
 	// Seed Roles Table
 	console.log("🔑 Seeding Roles...");
-    const rolesData = [
-        // System Admin Roles
-        { roleCode: "SYS_ADMIN_VIEWER", roleName: "System Admin Viewer", category: "SYSTEM_ACCESS", subCategory: "ADMIN", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
-        { roleCode: "SYS_ADMIN_USER", roleName: "System Admin User", category: "SYSTEM_ACCESS", subCategory: "ADMIN", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
-        { roleCode: "SYS_ADMIN_MGR", roleName: "System Admin Manager", category: "SYSTEM_ACCESS", subCategory: "ADMIN", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
-        
-        // User Access Roles
-        { roleCode: "USER_ACC_VIEWER", roleName: "User Access Viewer", category: "SYSTEM_ACCESS", subCategory: "USER_ACC", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
-        { roleCode: "USER_ACC_USER", roleName: "User Access User", category: "SYSTEM_ACCESS", subCategory: "USER_ACC", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
-        { roleCode: "USER_ACC_MGR", roleName: "User Access Manager", category: "SYSTEM_ACCESS", subCategory: "USER_ACC", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
+	const rolesData = [
+		// System Admin Roles
+		{
+			roleCode: "SYS_ADMIN_VIEWER",
+			roleName: "System Admin Viewer",
+			category: "SYSTEM_ACCESS",
+			subCategory: "ADMIN",
+			permissionLevel: "VIEWER",
+			view: true,
+			modify: false,
+			approve: false,
+			initiate: false,
+		},
+		{
+			roleCode: "SYS_ADMIN_USER",
+			roleName: "System Admin User",
+			category: "SYSTEM_ACCESS",
+			subCategory: "ADMIN",
+			permissionLevel: "USER",
+			view: true,
+			modify: true,
+			approve: false,
+			initiate: true,
+		},
+		{
+			roleCode: "SYS_ADMIN_MGR",
+			roleName: "System Admin Manager",
+			category: "SYSTEM_ACCESS",
+			subCategory: "ADMIN",
+			permissionLevel: "MANAGER",
+			view: true,
+			modify: false,
+			approve: true,
+			initiate: false,
+		},
 
-        // Org Structure Roles
-        { roleCode: "ORG_STR_VIEWER", roleName: "Org Structure Viewer", category: "SYSTEM_ACCESS", subCategory: "ORG_STR", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
-        { roleCode: "ORG_STR_USER", roleName: "Org Structure User", category: "SYSTEM_ACCESS", subCategory: "ORG_STR", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
-        { roleCode: "ORG_STR_MGR", roleName: "Org Structure Manager", category: "SYSTEM_ACCESS", subCategory: "ORG_STR", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
+		// User Access Roles
+		{
+			roleCode: "USER_ACC_VIEWER",
+			roleName: "User Access Viewer",
+			category: "SYSTEM_ACCESS",
+			subCategory: "USER_ACC",
+			permissionLevel: "VIEWER",
+			view: true,
+			modify: false,
+			approve: false,
+			initiate: false,
+		},
+		{
+			roleCode: "USER_ACC_USER",
+			roleName: "User Access User",
+			category: "SYSTEM_ACCESS",
+			subCategory: "USER_ACC",
+			permissionLevel: "USER",
+			view: true,
+			modify: true,
+			approve: false,
+			initiate: true,
+		},
+		{
+			roleCode: "USER_ACC_MGR",
+			roleName: "User Access Manager",
+			category: "SYSTEM_ACCESS",
+			subCategory: "USER_ACC",
+			permissionLevel: "MANAGER",
+			view: true,
+			modify: false,
+			approve: true,
+			initiate: false,
+		},
 
-        // Workflow Roles
-        { roleCode: "WORK_FLOW_VIEWER", roleName: "Workflow Viewer", category: "SYSTEM_ACCESS", subCategory: "WORK_FLOW", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
-        { roleCode: "WORK_FLOW_USER", roleName: "Workflow User", category: "SYSTEM_ACCESS", subCategory: "WORK_FLOW", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
-        { roleCode: "WORK_FLOW_MGR", roleName: "Workflow Manager", category: "SYSTEM_ACCESS", subCategory: "WORK_FLOW", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
-    ];
+		// Org Structure Roles
+		{
+			roleCode: "ORG_STR_VIEWER",
+			roleName: "Org Structure Viewer",
+			category: "SYSTEM_ACCESS",
+			subCategory: "ORG_STR",
+			permissionLevel: "VIEWER",
+			view: true,
+			modify: false,
+			approve: false,
+			initiate: false,
+		},
+		{
+			roleCode: "ORG_STR_USER",
+			roleName: "Org Structure User",
+			category: "SYSTEM_ACCESS",
+			subCategory: "ORG_STR",
+			permissionLevel: "USER",
+			view: true,
+			modify: true,
+			approve: false,
+			initiate: true,
+		},
+		{
+			roleCode: "ORG_STR_MGR",
+			roleName: "Org Structure Manager",
+			category: "SYSTEM_ACCESS",
+			subCategory: "ORG_STR",
+			permissionLevel: "MANAGER",
+			view: true,
+			modify: false,
+			approve: true,
+			initiate: false,
+		},
 
-    for (const role of rolesData) {
-        await prisma.role.upsert({
-            where: { roleCode: role.roleCode },
-            update: {},
-            create: {
-                ...role,
-                category: role.category as Category,
-                subCategory: role.subCategory as SubCategory,
-                permissionLevel: role.permissionLevel as PermissionLevel,
-                isActive: true
-            }
-        });
-    }
+		// Workflow Roles
+		{
+			roleCode: "WORK_FLOW_VIEWER",
+			roleName: "Workflow Viewer",
+			category: "SYSTEM_ACCESS",
+			subCategory: "WORK_FLOW",
+			permissionLevel: "VIEWER",
+			view: true,
+			modify: false,
+			approve: false,
+			initiate: false,
+		},
+		{
+			roleCode: "WORK_FLOW_USER",
+			roleName: "Workflow User",
+			category: "SYSTEM_ACCESS",
+			subCategory: "WORK_FLOW",
+			permissionLevel: "USER",
+			view: true,
+			modify: true,
+			approve: false,
+			initiate: true,
+		},
+		{
+			roleCode: "WORK_FLOW_MGR",
+			roleName: "Workflow Manager",
+			category: "SYSTEM_ACCESS",
+			subCategory: "WORK_FLOW",
+			permissionLevel: "MANAGER",
+			view: true,
+			modify: false,
+			approve: true,
+			initiate: false,
+		},
+	];
+
+	for (const role of rolesData) {
+		await prisma.role.upsert({
+			where: { roleCode: role.roleCode },
+			update: {},
+			create: {
+				...role,
+				category: role.category as Category,
+				subCategory: role.subCategory as SubCategory,
+				permissionLevel: role.permissionLevel as PermissionLevel,
+				isActive: true,
+			},
+		});
+	}
 	console.log(`✅ Created ${rolesData.length} roles`);
 
 	// Get all users for mapping
@@ -172,11 +297,11 @@ async function seed() {
 		userMappings.push({
 			userId: allUsers[i].id,
 			companyId: company.id,
-			reportingManagerId: managerId, 
+			reportingManagerId: managerId,
 			roleCode: roleToAssign,
 			status: UserStatus.ACTIVE,
-			designation: 'Employee',
-			employeeId: `EMP-${i}`
+			designation: "Employee",
+			employeeId: `EMP-${i}`,
 		});
 	}
 	await prisma.userMapping.createMany({ data: userMappings });
@@ -195,47 +320,101 @@ async function seed() {
 	// console.log(`✅ Created ${activities.length} user activities`);
 
 	// Create Org Structures for multiple companies
-    console.log("\n🌳 Creating Organization Structures...");
+	console.log("\n🌳 Creating Organization Structures...");
 
-    // We will apply the hierarchy to the first two companies from allCompanies
-    const targetCompanies = allCompanies.slice(0, 2);
+	// We will apply the hierarchy to the first two companies from allCompanies
+	const targetCompanies = allCompanies.slice(0, 2);
 
-    for (const company of targetCompanies) {
-        console.log(`   - Seeding hierarchy for: ${company.legalName}`);
-        
-        const companyId = company.id;
+	for (const company of targetCompanies) {
+		console.log(`   - Seeding hierarchy for: ${company.legalName}`);
 
-        // Using an array of objects that match your exact sample structure
-        // Order is critical: Roots first, then Divisions, then Locations, etc.
-        const orgNodes = [
+		const companyId = company.id;
+
+		// Using an array of objects that match your exact sample structure
+		// Order is critical: Roots first, then Divisions, then Locations, etc.
+		const orgNodes = [
 			// Level 0: Root
-			{ id: "019bdaab-479f-754e-9004-d96cb93f649b", name: "TEST Company", type: "ROOT", path: "ROOT", pid: null },
-			
+			{
+				id: "019bdaab-479f-754e-9004-d96cb93f649b",
+				name: "TEST Company",
+				type: "ROOT",
+				path: "ROOT",
+				pid: null,
+			},
+
 			// Level 1: Divisions
-			{ id: "019be954-464c-7020-9d35-4876ab334b9d", name: "Aluminum", type: "DIVISION", path: "ROOT.ALUMINUM", pid: "019bdaab-479f-754e-9004-d96cb93f649b" },
-			{ id: "019be567-4a3a-729b-a9f5-c7150cf956dc", name: "Steel", type: "DIVISION", path: "ROOT.STEEL", pid: "019bdaab-479f-754e-9004-d96cb93f649b" },
-			{ id: "019beabc-1234-5678-90ab-cdef12345678", name: "Strategy", type: "DIVISION", path: "ROOT.STRATEGY", pid: "019bdaab-479f-754e-9004-d96cb93f649b" },
+			{
+				id: "019be954-464c-7020-9d35-4876ab334b9d",
+				name: "Aluminum",
+				type: "DIVISION",
+				path: "ROOT.ALUMINUM",
+				pid: "019bdaab-479f-754e-9004-d96cb93f649b",
+			},
+			{
+				id: "019be567-4a3a-729b-a9f5-c7150cf956dc",
+				name: "Steel",
+				type: "DIVISION",
+				path: "ROOT.STEEL",
+				pid: "019bdaab-479f-754e-9004-d96cb93f649b",
+			},
+			{
+				id: "019beabc-1234-5678-90ab-cdef12345678",
+				name: "Strategy",
+				type: "DIVISION",
+				path: "ROOT.STRATEGY",
+				pid: "019bdaab-479f-754e-9004-d96cb93f649b",
+			},
 
 			// Level 2: Locations
-			{ id: "019be956-81ca-7138-be99-ebff5e6eef96", name: "Mumbai", type: "LOCATION", path: "ROOT.ALUMINUM.MUMBAI", pid: "019be954-464c-7020-9d35-4876ab334b9d" },
+			{
+				id: "019be956-81ca-7138-be99-ebff5e6eef96",
+				name: "Mumbai",
+				type: "LOCATION",
+				path: "ROOT.ALUMINUM.MUMBAI",
+				pid: "019be954-464c-7020-9d35-4876ab334b9d",
+			},
 			// FIXED: changed abcd-efgh-ijkl to aaaa-bbbb-cccc (valid hex)
-			{ id: "019be954-aaaa-bbbb-cccc-4876ab334b9d", name: "Kolkata", type: "LOCATION", path: "ROOT.ALUMINUM.KOLKATA", pid: "019be954-464c-7020-9d35-4876ab334b9d" },
+			{
+				id: "019be954-aaaa-bbbb-cccc-4876ab334b9d",
+				name: "Kolkata",
+				type: "LOCATION",
+				path: "ROOT.ALUMINUM.KOLKATA",
+				pid: "019be954-464c-7020-9d35-4876ab334b9d",
+			},
 
 			// Level 3: Departments
-			{ id: "019bea0e-10b7-7786-a767-185673a26553", name: "Finance", type: "DEPARTMENT", path: "ROOT.ALUMINUM.MUMBAI.FINANCE", pid: "019be956-81ca-7138-be99-ebff5e6eef96" },
-			{ id: "019be94b-1256-7358-ab61-2eb679daaa93", name: "Finance", type: "DEPARTMENT", path: "ROOT.STEEL.FINANCE", pid: "019be567-4a3a-729b-a9f5-c7150cf956dc" },
+			{
+				id: "019bea0e-10b7-7786-a767-185673a26553",
+				name: "Finance",
+				type: "DEPARTMENT",
+				path: "ROOT.ALUMINUM.MUMBAI.FINANCE",
+				pid: "019be956-81ca-7138-be99-ebff5e6eef96",
+			},
+			{
+				id: "019be94b-1256-7358-ab61-2eb679daaa93",
+				name: "Finance",
+				type: "DEPARTMENT",
+				path: "ROOT.STEEL.FINANCE",
+				pid: "019be567-4a3a-729b-a9f5-c7150cf956dc",
+			},
 
 			// Level 4: Sub-Departments
-			{ id: "019beabc-9999-8888-7777-185673a26553", name: "Procurement", type: "DEPARTMENT", path: "ROOT.ALUMINUM.MUMBAI.FINANCE.PROCUREMENT", pid: "019bea0e-10b7-7786-a767-185673a26553" }
+			{
+				id: "019beabc-9999-8888-7777-185673a26553",
+				name: "Procurement",
+				type: "DEPARTMENT",
+				path: "ROOT.ALUMINUM.MUMBAI.FINANCE.PROCUREMENT",
+				pid: "019bea0e-10b7-7786-a767-185673a26553",
+			},
 		];
 
-        for (const node of orgNodes) {
-            // Adjust the path to include a unique company prefix to avoid Ltree collisions 
-            // across different companies (e.g., TECH_CORP.ROOT.ALUMINUM)
-            const companyPrefix = company.legalName.toUpperCase().replace(/\s/g, '_');
-            const uniquePath = `${companyPrefix}.${node.path}`;
+		for (const node of orgNodes) {
+			// Adjust the path to include a unique company prefix to avoid Ltree collisions
+			// across different companies (e.g., TECH_CORP.ROOT.ALUMINUM)
+			const companyPrefix = company.legalName.toUpperCase().replace(/\s/g, "_");
+			const uniquePath = `${companyPrefix}.${node.path}`;
 
-            await prisma.$executeRaw`
+			await prisma.$executeRaw`
                 INSERT INTO "OrgStructure" (id, "nodeName", "nodeType", "nodePath", "companyId", "parentId", "createdAt", 
             		"updatedAt"
 				)
@@ -251,50 +430,51 @@ async function seed() {
                 )
                 ON CONFLICT (id) DO NOTHING;
             `;
-        }
-    }
-    console.log(`✅ Created OrgStructure for ${targetCompanies.length} companies using explicit IDs.`);
+		}
+	}
+	console.log(
+		`✅ Created OrgStructure for ${targetCompanies.length} companies using explicit IDs.`
+	);
 
 	// 7. CREATE USER ACCESS
-    console.log("🛡️ Seeding User Access...");
-    const accessData = [
-        {
-            user: allUsers[0],
-            isGlobalAccess: true,
-            roleCode: "SYS_ADMIN_VIEWER",
-            accessType: AccessType.PRIMARY,
-        },
-        {
-            user: allUsers[0],
-            isGlobalAccess: false,
-            roleCode: "ORG_STR_MGR",
-            accessType: AccessType.SECONDARY,
-        }
-    ];
+	console.log("🛡️ Seeding User Access...");
+	const accessData = [
+		{
+			user: allUsers[0],
+			isGlobalAccess: true,
+			roleCode: "SYS_ADMIN_VIEWER",
+			accessType: AccessType.PRIMARY,
+		},
+		{
+			user: allUsers[0],
+			isGlobalAccess: false,
+			roleCode: "ORG_STR_MGR",
+			accessType: AccessType.SECONDARY,
+		},
+	];
 
-    for (const access of accessData) {
+	for (const access of accessData) {
 		const mapping = await prisma.userMapping.findFirst({
 			where: { userId: access.user.id },
-			select: { companyId: true }
+			select: { companyId: true },
 		});
 
 		if (!mapping) {
 			throw new Error(`User ${access.user.email} has no company mapping!`);
 		}
 
-
 		const node = await prisma.orgStructure.findFirst({
-			where: { 
-				companyId: mapping.companyId, 
-				nodeName: "Aluminum"
-			}
+			where: {
+				companyId: mapping.companyId,
+				nodeName: "Aluminum",
+			},
 		});
 
-		if(!node) {
+		if (!node) {
 			throw new Error(`Node not found!`);
 		}
 
-        await prisma.userAccess.create({ 
+		await prisma.userAccess.create({
 			data: {
 				userId: access.user.id,
 				companyId: mapping.companyId,
@@ -302,11 +482,11 @@ async function seed() {
 				isGlobalAccess: access.isGlobalAccess,
 				roleCode: access.roleCode,
 				accessType: access.accessType,
-			}
+			},
 		});
-    }
+	}
 
-	console.log(`create user access: ${accessData.length}`)
+	console.log(`create user access: ${accessData.length}`);
 
 	console.log("\n🏢 Creating a Single Company...");
 	await prisma.companyMaster.create({
@@ -330,9 +510,7 @@ async function seed() {
 	console.log(`   - Users: ${allUsers.length}`);
 	console.log(`   - User Mappings: ${userMappings.length}`);
 	console.log(`   - Roles: ${rolesData.length}`);
-	console.log(`	- User Access: ${accessData.length}`)
-
-
+	console.log(`	- User Access: ${accessData.length}`);
 
 	// console.log(`   - User Activities: ${activities.length}`);
 

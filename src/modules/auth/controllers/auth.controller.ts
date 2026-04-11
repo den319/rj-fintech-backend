@@ -5,7 +5,6 @@ import { loginService, registerService } from "../services/auth.service";
 import { generateAccessToken, removeAuthCookies, setJwtAuthCookie } from "../../../utils/cookie";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
-import { hashValue } from "../../../utils/argon";
 
 export const registerController = asyncHandler(async (req: Request, res: Response) => {
 	const body = registerSchema.parse(req.body);
@@ -16,18 +15,20 @@ export const registerController = asyncHandler(async (req: Request, res: Respons
 
 	const accessToken = generateAccessToken(userId);
 
-	const hashedToken = await hashValue(accessToken);
+	// const hashedToken = await hashValue(accessToken);
 
-	let refreshToken= "";
-	let version="";
+	const refreshToken = "";
+	const version = "";
 
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = user;
 
-	return setJwtAuthCookie({ res, accessToken, refreshToken, version }).status(HTTP_STATUS.CREATED).json({
-		message: "User created successfully!",
-		user: userWithoutSensitiveData,
-	});
+	return setJwtAuthCookie({ res, accessToken, refreshToken, version })
+		.status(HTTP_STATUS.CREATED)
+		.json({
+			message: "User created successfully!",
+			user: userWithoutSensitiveData,
+		});
 });
 
 export const loginController = asyncHandler(async (req: Request, res: Response) => {
@@ -41,10 +42,12 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 		ip
 	);
 
-	return setJwtAuthCookie({ res, accessToken, refreshToken, version:encryptedVersion }).status(HTTP_STATUS.OK).json({
-		message: "User logged-in successfully!",
-		user: userData,
-	});
+	return setJwtAuthCookie({ res, accessToken, refreshToken, version: encryptedVersion })
+		.status(HTTP_STATUS.OK)
+		.json({
+			message: "User logged-in successfully!",
+			user: userData,
+		});
 });
 
 export const logoutController = asyncHandler(async (req: Request, res: Response) => {
@@ -72,7 +75,6 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 	}
 
 	removeAuthCookies(res);
-
 
 	return res.status(HTTP_STATUS.OK).json({
 		message: "User logged-out successfully",

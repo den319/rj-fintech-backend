@@ -10,7 +10,6 @@ import { compareHash, hashValue } from "../../../utils/argon";
 import { generateAccessToken } from "../../../utils/cookie";
 import { encrypt, generateToken } from "../../../utils/utils";
 
-
 export const registerService = async (body: RegisterSchemaType) => {
 	const { email, name, password } = body;
 
@@ -84,8 +83,8 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const forcedLogin = Number(action);
 
-	let version:number=1;
-	
+	let version: number = 1;
+
 	const user = await prisma.userMaster.findUnique({
 		where: { email },
 		select: {
@@ -114,19 +113,18 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-
 	const refreshToken = generateToken();
 
-	const hashedToken= await hashValue(refreshToken);
+	const hashedToken = await hashValue(refreshToken);
 
 	if (forcedLogin === 1) {
 		if (userActivity) {
-			const oldVersion= userActivity.version.split("-");
+			const oldVersion = userActivity.version.split("-");
 
-			let newVersion= Number(oldVersion[1]);
+			let newVersion = Number(oldVersion[1]);
 
-			if(!Number.isNaN(newVersion)) {
-				version= newVersion;
+			if (!Number.isNaN(newVersion)) {
+				version = newVersion;
 
 				await prisma.userActivity.update({
 					where: {
@@ -138,12 +136,11 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 						expireAt,
 						userAgent,
 						ip: ipAddress,
-					}
+					},
 				});
 			} else {
-				throw new InternalServerException("The format of 'version' is invalid!")
+				throw new InternalServerException("The format of 'version' is invalid!");
 			}
-
 		}
 	}
 
@@ -184,20 +181,20 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const accessToken = generateAccessToken(userId);
 
-	if(!userActivity) {
+	if (!userActivity) {
 		await prisma.userActivity.create({
-		   data: {
-			   userId,
-			   token: hashedToken,
-			   userAgent,
-			   ip: ipAddress,
-			   version: 'v-1',
-			   expireAt,
-		   },
-	   });
+			data: {
+				userId,
+				token: hashedToken,
+				userAgent,
+				ip: ipAddress,
+				version: "v-1",
+				expireAt,
+			},
+		});
 	}
 
-	const encryptedVersion= encrypt(`v-${version}`);
+	const encryptedVersion = encrypt(`v-${version}`);
 
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = userResponse;

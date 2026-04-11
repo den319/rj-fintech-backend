@@ -9,6 +9,6 @@ import { validateSessionMiddleware } from "../middleware/validateSession.middlew
 const authRoutes = Router()
 	.post("/register", registerController)
 	.post("/login", loginController)
-	.post("/logout", validateSessionMiddleware, logoutController)
+	.post("/logout", validateSessionMiddleware, logoutController);
 
 export default authRoutes;

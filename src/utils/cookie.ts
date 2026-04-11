@@ -6,14 +6,14 @@ type Time = `${number}${"s" | "m" | "h" | "d" | "w" | "y"}`;
 type Cookie = {
 	res: Response;
 	accessToken: string;
-	refreshToken:string;
-	version:string;
+	refreshToken: string;
+	version: string;
 };
 
-type AccessToken= {
+type AccessToken = {
 	res: Response;
 	accessToken: string;
-}
+};
 
 export const generateAccessToken = (userId: string) => {
 	return jwt.sign({ userId }, Env.JWT_SECRET, {
@@ -35,14 +35,14 @@ export const setJwtAuthCookie = ({ res, accessToken, refreshToken, version }: Co
 		httpOnly: true,
 		secure: Env.NODE_ENV === "production",
 		sameSite: Env.NODE_ENV === "production" ? "strict" : "lax",
-	})
+	});
 
 	res.cookie("version", version, {
 		maxAge: 24 * 60 * 60 * 1000, // 24 hours
 		httpOnly: true,
 		secure: Env.NODE_ENV === "production",
 		sameSite: Env.NODE_ENV === "production" ? "strict" : "lax",
-	})
+	});
 
 	return res;
 };
@@ -60,8 +60,8 @@ export const verifyToken = (token: string) => {
 	return jwt.verify(token, Env.JWT_SECRET) as { userId: string };
 };
 
-export const removeAuthCookies= (res: Response): void => {
-  	res.clearCookie("accessToken", { path: "/" });
+export const removeAuthCookies = (res: Response): void => {
+	res.clearCookie("accessToken", { path: "/" });
 	res.clearCookie("refreshToken", { path: "/" });
 	res.clearCookie("version", { path: "/" });
-}
+};
