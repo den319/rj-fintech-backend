@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../middlewares/asyncHandler.middleware";
 import { loginSchema, registerSchema } from "../validators/auth.validator";
-import { loginService, registerService } from "../servieces/auth.service";
+import { loginService, registerService } from "../services/auth.service";
 import { generateAccessToken, removeAuthCookies, setJwtAuthCookie } from "../../../utils/cookie";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";

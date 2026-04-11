@@ -1,5 +1,5 @@
 import { Router } from "express";
-import companyRoutes from "../modules/company/routes/company.route";
+import companyRoutes from "../modules/admin/company/routes/company.route";
 import { validateSessionMiddleware } from "../modules/auth/middleware/validateSession.middleware";
 
 const adminRouter = Router();

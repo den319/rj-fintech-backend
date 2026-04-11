@@ -6,7 +6,7 @@
 */
 
 import { prisma } from "../config/prismaClient";
-import { UserStatus } from "../generated/prisma/enums";
+import { AccessType, Category, PermissionLevel, SubCategory, UserStatus } from "../generated/prisma/enums";
 import { hashValue } from "../utils/argon";
 
 
@@ -20,11 +20,12 @@ async function seed() {
 	await prisma.companyMapping.deleteMany();
 	await prisma.userMaster.deleteMany();
 	await prisma.$executeRaw`TRUNCATE TABLE "OrgStructure" CASCADE;`;
+	await prisma.role.deleteMany();
 	await prisma.companyMaster.deleteMany();
 	await prisma.groupCompanyMaster.deleteMany();
 	console.log("✅ Data cleared");
 
-	// 1. Create Group Company Masters
+	// Create Group Company Masters
 	console.log("\n📦 Creating Group Companies...");
 	const groupCompanies = await prisma.groupCompanyMaster.createMany({
 		data: [
@@ -38,7 +39,7 @@ async function seed() {
 	// Get all group companies for mapping
 	const allGroupCompanies = await prisma.groupCompanyMaster.findMany();
 
-	// 2. Create Company Masters
+	// Create Company Masters
 	console.log("\n🏢 Creating Companies...");
 	const companies = await prisma.companyMaster.createMany({
 		data: [
@@ -85,7 +86,7 @@ async function seed() {
 	// Get all companies for mapping
 	const allCompanies = await prisma.companyMaster.findMany();
 
-	// 3. Create Company Mappings (link companies to group companies)
+	// Create Company Mappings (link companies to group companies)
 	console.log("\n🔗 Creating Company Mappings...");
 	const companyMappings = [];
 	for (let i = 0; i < allCompanies.length; i++) {
@@ -98,7 +99,7 @@ async function seed() {
 	await prisma.companyMapping.createMany({ data: companyMappings });
 	console.log(`✅ Created ${companyMappings.length} company mappings`);
 
-	// 4. Create User Masters
+	// Create User Masters
 	console.log("\n👥 Creating Users...");
 	const usersData = [
 		{ name: "Alice Johnson", email: "test1@gmail.com", phone: "+1234567890" },
@@ -118,19 +119,61 @@ async function seed() {
 	});
 	console.log(`✅ Created ${users.count} users`);
 
+	// Seed Roles Table
+	console.log("🔑 Seeding Roles...");
+    const rolesData = [
+        // System Admin Roles
+        { roleCode: "SYS_ADMIN_VIEWER", roleName: "System Admin Viewer", category: "SYSTEM_ACCESS", subCategory: "ADMIN", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
+        { roleCode: "SYS_ADMIN_USER", roleName: "System Admin User", category: "SYSTEM_ACCESS", subCategory: "ADMIN", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
+        { roleCode: "SYS_ADMIN_MGR", roleName: "System Admin Manager", category: "SYSTEM_ACCESS", subCategory: "ADMIN", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
+        
+        // User Access Roles
+        { roleCode: "USER_ACC_VIEWER", roleName: "User Access Viewer", category: "SYSTEM_ACCESS", subCategory: "USER_ACC", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
+        { roleCode: "USER_ACC_USER", roleName: "User Access User", category: "SYSTEM_ACCESS", subCategory: "USER_ACC", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
+        { roleCode: "USER_ACC_MGR", roleName: "User Access Manager", category: "SYSTEM_ACCESS", subCategory: "USER_ACC", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
+
+        // Org Structure Roles
+        { roleCode: "ORG_STR_VIEWER", roleName: "Org Structure Viewer", category: "SYSTEM_ACCESS", subCategory: "ORG_STR", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
+        { roleCode: "ORG_STR_USER", roleName: "Org Structure User", category: "SYSTEM_ACCESS", subCategory: "ORG_STR", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
+        { roleCode: "ORG_STR_MGR", roleName: "Org Structure Manager", category: "SYSTEM_ACCESS", subCategory: "ORG_STR", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
+
+        // Workflow Roles
+        { roleCode: "WORK_FLOW_VIEWER", roleName: "Workflow Viewer", category: "SYSTEM_ACCESS", subCategory: "WORK_FLOW", permissionLevel: "VIEWER", view: true, modify: false, approve: false, initiate: false },
+        { roleCode: "WORK_FLOW_USER", roleName: "Workflow User", category: "SYSTEM_ACCESS", subCategory: "WORK_FLOW", permissionLevel: "USER", view: true, modify: true, approve: false, initiate: true },
+        { roleCode: "WORK_FLOW_MGR", roleName: "Workflow Manager", category: "SYSTEM_ACCESS", subCategory: "WORK_FLOW", permissionLevel: "MANAGER", view: true, modify: false, approve: true, initiate: false },
+    ];
+
+    for (const role of rolesData) {
+        await prisma.role.upsert({
+            where: { roleCode: role.roleCode },
+            update: {},
+            create: {
+                ...role,
+                category: role.category as Category,
+                subCategory: role.subCategory as SubCategory,
+                permissionLevel: role.permissionLevel as PermissionLevel,
+                isActive: true
+            }
+        });
+    }
+	console.log(`✅ Created ${rolesData.length} roles`);
+
 	// Get all users for mapping
 	const allUsers = await prisma.userMaster.findMany();
 
-	// 5. Create User Mappings (link users to companies)
+	// Create User Mappings (link users to companies)
 	console.log("\n🔗 Creating User Mappings...");
 	const userMappings = [];
 	for (let i = 0; i < allUsers.length; i++) {
 		const company = allCompanies[i % allCompanies.length];
 		const managerId = i === 0 ? allUsers[0].id : allUsers[0].id;
+		const roleToAssign = rolesData[i % rolesData.length].roleCode;
+
 		userMappings.push({
 			userId: allUsers[i].id,
 			companyId: company.id,
-			reportingManagerId: managerId, // Now mandatory
+			reportingManagerId: managerId, 
+			roleCode: roleToAssign,
 			status: UserStatus.ACTIVE,
 			designation: 'Employee',
 			employeeId: `EMP-${i}`
@@ -139,7 +182,7 @@ async function seed() {
 	await prisma.userMapping.createMany({ data: userMappings });
 	console.log(`✅ Created ${userMappings.length} user mappings`);
 
-	// // 6. Create User Activities (tokens)
+	// // Create User Activities (tokens)
 	// console.log("\n🎫 Creating User Activities...");
 	// const activities = [];
 	// for (let i = 0; i < allUsers.length; i++) {
@@ -151,7 +194,7 @@ async function seed() {
 	// await prisma.userActivity.createMany({ data: activities });
 	// console.log(`✅ Created ${activities.length} user activities`);
 
-	// 7. Create Org Structures for multiple companies
+	// Create Org Structures for multiple companies
     console.log("\n🌳 Creating Organization Structures...");
 
     // We will apply the hierarchy to the first two companies from allCompanies
@@ -193,20 +236,77 @@ async function seed() {
             const uniquePath = `${companyPrefix}.${node.path}`;
 
             await prisma.$executeRaw`
-                INSERT INTO "OrgStructure" (id, "nodeName", "nodeType", "nodePath", "companyId", "parentId")
+                INSERT INTO "OrgStructure" (id, "nodeName", "nodeType", "nodePath", "companyId", "parentId", "createdAt", 
+            		"updatedAt"
+				)
                 VALUES (
                     ${node.id}::uuid, 
                     ${node.name}, 
                     ${node.type}, 
                     ${uniquePath}::ltree, 
                     ${companyId}::uuid, 
-                    ${node.pid}::uuid
+                    ${node.pid}::uuid,
+					NOW(), 
+            		NOW()
                 )
                 ON CONFLICT (id) DO NOTHING;
             `;
         }
     }
     console.log(`✅ Created OrgStructure for ${targetCompanies.length} companies using explicit IDs.`);
+
+	// 7. CREATE USER ACCESS
+    console.log("🛡️ Seeding User Access...");
+    const accessData = [
+        {
+            user: allUsers[0],
+            isGlobalAccess: true,
+            roleCode: "SYS_ADMIN_VIEWER",
+            accessType: AccessType.PRIMARY,
+        },
+        {
+            user: allUsers[0],
+            isGlobalAccess: false,
+            roleCode: "ORG_STR_MGR",
+            accessType: AccessType.SECONDARY,
+        }
+    ];
+
+    for (const access of accessData) {
+		const mapping = await prisma.userMapping.findFirst({
+			where: { userId: access.user.id },
+			select: { companyId: true }
+		});
+
+		if (!mapping) {
+			throw new Error(`User ${access.user.email} has no company mapping!`);
+		}
+
+
+		const node = await prisma.orgStructure.findFirst({
+			where: { 
+				companyId: mapping.companyId, 
+				nodeName: "Aluminum"
+			}
+		});
+
+		if(!node) {
+			throw new Error(`Node not found!`);
+		}
+
+        await prisma.userAccess.create({ 
+			data: {
+				userId: access.user.id,
+				companyId: mapping.companyId,
+				nodeId: node.id,
+				isGlobalAccess: access.isGlobalAccess,
+				roleCode: access.roleCode,
+				accessType: access.accessType,
+			}
+		});
+    }
+
+	console.log(`create user access: ${accessData.length}`)
 
 	console.log("\n🏢 Creating a Single Company...");
 	await prisma.companyMaster.create({
@@ -229,6 +329,10 @@ async function seed() {
 	console.log(`   - Company Mappings: ${companyMappings.length}`);
 	console.log(`   - Users: ${allUsers.length}`);
 	console.log(`   - User Mappings: ${userMappings.length}`);
+	console.log(`   - Roles: ${rolesData.length}`);
+	console.log(`	- User Access: ${accessData.length}`)
+
+
 
 	// console.log(`   - User Activities: ${activities.length}`);
 

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import authRoutes from "../modules/auth/routes/auth.route";
-import orgStructureRoutes from "../modules/orgStructure/routes/orgStructure.route";
 import { validateSessionMiddleware } from "../modules/auth/middleware/validateSession.middleware";
+import orgStructureRoutes from "../modules/company-settings/orgStructure/routes/orgStructure.route";
 
 const commonRouter = Router();
 

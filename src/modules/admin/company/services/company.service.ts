@@ -1,4 +1,4 @@
-import { prisma } from "../../../config/prismaClient";
+import { prisma } from "../../../../config/prismaClient";
 import { Company, CompanyGroup } from "../entity/company.entity";
 
 export const getAllCompaniesService = async () => {
