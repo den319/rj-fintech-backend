@@ -73,6 +73,13 @@ export const getAllUsersService = async (companyCode: string, user: UserMaster) 
 					email: true,
 					phone: true,
 					createdAt: true,
+                    userAccess: {
+                        where: { companyId: company.id },
+                        include: {
+                            role: true,
+                            node: true
+                        }
+                    }
 				},
 			},
 			reportingManager: {
@@ -84,8 +91,16 @@ export const getAllUsersService = async (companyCode: string, user: UserMaster) 
 		},
 	});
 
+    const paths = await prisma.$queryRaw<{id: string, nodePath: string}[]>`
+        SELECT id, "nodePath"::text FROM "OrgStructure" 
+        WHERE "companyId" = ${company.id}::uuid
+    `;
+
+    const pathMap = new Map(paths.map(p => [p.id, p.nodePath]));
+
 	const groupedUsers = mappings.reduce(
 		(acc, m) => {
+            console.log(m.user.userAccess);
 			const formattedUser = {
 				name: m.user.name,
 				email: m.user.email,
@@ -97,6 +112,17 @@ export const getAllUsersService = async (companyCode: string, user: UserMaster) 
 					name: m.reportingManager.name,
 					email: m.reportingManager.email,
 				},
+                accessDetails: m.user.userAccess.map(access => {
+                    
+                    return {
+                        accessType: access.accessType,
+                        roleName: access.role?.roleName,
+                        roleCategory: access.role?.category,
+                        roleSubCategory: access.role?.subCategory,
+                        nodeName: access.node.nodeName,
+                        nodePath: pathMap.get(access.nodeId) || ""
+                    }
+                })
 			};
 
 			// Determine which key to push to

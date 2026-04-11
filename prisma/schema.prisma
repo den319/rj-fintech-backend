@@ -54,7 +54,7 @@ model UserMaster {
   companies UserMapping[]
   managedMappings  UserMapping[] @relation("ManagerToSubordinate")
 
-  accessLogs     UserAccess[]
+  userAccess     UserAccess[]
 
   @@index([email])
   @@index([id])
@@ -77,7 +77,7 @@ model CompanyMaster {
   users UserMapping[]
 
   orgStructure OrgStructure[]
-  userAccesses   UserAccess[]
+  userAccess   UserAccess[]
 
 }
 
@@ -159,7 +159,7 @@ model OrgStructure {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  nodePermissions UserAccess[]
+  userAccess UserAccess[]
 
   // GiST index is essential for ltree performance
   @@index([nodePath], map: "node_path_gist_idx", type: Gist)
@@ -183,7 +183,7 @@ model Role {
   updatedAt        DateTime @updatedAt
 
   userMappings    UserMapping[]
-  roleAssignments UserAccess[]
+  userAccess UserAccess[]
 
 }
 

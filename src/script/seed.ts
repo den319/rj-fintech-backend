@@ -23,6 +23,7 @@ async function seed() {
 	await prisma.userActivity.deleteMany();
 	await prisma.userMapping.deleteMany();
 	await prisma.companyMapping.deleteMany();
+	await prisma.userAccess.deleteMany();
 	await prisma.userMaster.deleteMany();
 	await prisma.$executeRaw`TRUNCATE TABLE "OrgStructure" CASCADE;`;
 	await prisma.role.deleteMany();
@@ -347,21 +348,21 @@ async function seed() {
 				id: "019be954-464c-7020-9d35-4876ab334b9d",
 				name: "Aluminum",
 				type: "DIVISION",
-				path: "ROOT.ALUMINUM",
+				path: "ALUMINUM",
 				pid: "019bdaab-479f-754e-9004-d96cb93f649b",
 			},
 			{
 				id: "019be567-4a3a-729b-a9f5-c7150cf956dc",
 				name: "Steel",
 				type: "DIVISION",
-				path: "ROOT.STEEL",
+				path: "STEEL",
 				pid: "019bdaab-479f-754e-9004-d96cb93f649b",
 			},
 			{
 				id: "019beabc-1234-5678-90ab-cdef12345678",
 				name: "Strategy",
 				type: "DIVISION",
-				path: "ROOT.STRATEGY",
+				path: "STRATEGY",
 				pid: "019bdaab-479f-754e-9004-d96cb93f649b",
 			},
 
@@ -370,7 +371,7 @@ async function seed() {
 				id: "019be956-81ca-7138-be99-ebff5e6eef96",
 				name: "Mumbai",
 				type: "LOCATION",
-				path: "ROOT.ALUMINUM.MUMBAI",
+				path: "ALUMINUM.MUMBAI",
 				pid: "019be954-464c-7020-9d35-4876ab334b9d",
 			},
 			// FIXED: changed abcd-efgh-ijkl to aaaa-bbbb-cccc (valid hex)
@@ -378,7 +379,7 @@ async function seed() {
 				id: "019be954-aaaa-bbbb-cccc-4876ab334b9d",
 				name: "Kolkata",
 				type: "LOCATION",
-				path: "ROOT.ALUMINUM.KOLKATA",
+				path: "ALUMINUM.KOLKATA",
 				pid: "019be954-464c-7020-9d35-4876ab334b9d",
 			},
 
@@ -387,14 +388,14 @@ async function seed() {
 				id: "019bea0e-10b7-7786-a767-185673a26553",
 				name: "Finance",
 				type: "DEPARTMENT",
-				path: "ROOT.ALUMINUM.MUMBAI.FINANCE",
+				path: "ALUMINUM.MUMBAI.FINANCE",
 				pid: "019be956-81ca-7138-be99-ebff5e6eef96",
 			},
 			{
 				id: "019be94b-1256-7358-ab61-2eb679daaa93",
 				name: "Finance",
 				type: "DEPARTMENT",
-				path: "ROOT.STEEL.FINANCE",
+				path: "STEEL.FINANCE",
 				pid: "019be567-4a3a-729b-a9f5-c7150cf956dc",
 			},
 
@@ -403,7 +404,7 @@ async function seed() {
 				id: "019beabc-9999-8888-7777-185673a26553",
 				name: "Procurement",
 				type: "DEPARTMENT",
-				path: "ROOT.ALUMINUM.MUMBAI.FINANCE.PROCUREMENT",
+				path: "ALUMINUM.MUMBAI.FINANCE.PROCUREMENT",
 				pid: "019bea0e-10b7-7786-a767-185673a26553",
 			},
 		];

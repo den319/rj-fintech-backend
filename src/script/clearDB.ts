@@ -5,11 +5,11 @@ async function clearDB() {
 	await prisma.userActivity.deleteMany();
 	await prisma.userMapping.deleteMany();
 	await prisma.companyMapping.deleteMany();
+	await prisma.userAccess.deleteMany();
 	await prisma.userMaster.deleteMany();
 	await prisma.$executeRaw`TRUNCATE TABLE "OrgStructure" RESTART IDENTITY CASCADE;`;
 	await prisma.role.deleteMany();
 	await prisma.companyMaster.deleteMany();
-	await prisma.userAccess.deleteMany();
 	await prisma.groupCompanyMaster.deleteMany();
 	console.log("✅ Data cleared");
 
