@@ -8,7 +8,7 @@ export type Company = {
 	name: string;
 	gst?: string;
 	address: string;
-	registeredAt: Date;
+	registeredAt: string;
 	brand?: string;
 	companyCode: string;
 	iecode: string;

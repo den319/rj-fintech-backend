@@ -24,10 +24,13 @@ export const validateSessionMiddleware = asyncHandler(
 		const encryptedVersion = req.cookies?.version;
 		const refreshToken = req.cookies?.refreshToken;
 
+		const [selector, validator]= refreshToken?.split(":");
+
 		const version = decrypt(encryptedVersion as string);
 
 		if (!accessToken) {
-			return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "Token not found!" });
+			console.error("Token not found!")
+			throw new jwt.TokenExpiredError("Access token missing", new Date());
 		}
 
 		try {
@@ -43,7 +46,7 @@ export const validateSessionMiddleware = asyncHandler(
 
 			const userActivity = await prisma.userActivity.findUnique({
 				where: { userId: decoded?.userId },
-				select: { token: true, userId: true, expireAt: true, version: true },
+				select: { userId: true, expireAt: true, version: true },
 			});
 
 			if (!userActivity) {
@@ -69,19 +72,18 @@ export const validateSessionMiddleware = asyncHandler(
 			return next();
 		} catch (error) {
 			if (error instanceof jwt.TokenExpiredError) {
-				const decodedExpired: any = jwt.decode(accessToken as string);
 
-				if (
-					!decodedExpired ||
-					typeof decodedExpired !== "object" ||
-					!("userId" in decodedExpired)
-				) {
-					return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Invalid expired token");
+				if (!refreshToken) {
+					return rejectSession(
+						res,
+						HTTP_STATUS.UNAUTHORIZED,
+						"Token not found! Log-in again!"
+					);
 				}
 
 				const userActivity = await prisma.userActivity.findUnique({
-					where: { userId: decodedExpired?.userId },
-					select: { token: true, userId: true, expireAt: true, version: true },
+					where: { selector: selector },
+					select: { validator: true, userId: true, expireAt: true, version: true },
 				});
 
 				if (!userActivity) {
@@ -96,18 +98,10 @@ export const validateSessionMiddleware = asyncHandler(
 					return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Expired version!");
 				}
 
-				// console.log(version, userActivity?.version)
 				if (version !== userActivity?.version) {
 					return rejectSession(res, HTTP_STATUS.CONFLICT, "Version mismatch!");
 				}
 
-				if (!refreshToken) {
-					return rejectSession(
-						res,
-						HTTP_STATUS.UNAUTHORIZED,
-						"Token not found! Log-in again!"
-					);
-				}
 
 				if (userActivity.expireAt < new Date()) {
 					return rejectSession(
@@ -117,7 +111,7 @@ export const validateSessionMiddleware = asyncHandler(
 					);
 				}
 
-				const isTokenValid = await compareHash(refreshToken as string, userActivity.token);
+				const isTokenValid = await compareHash(validator as string, userActivity.validator);
 				// console.log(refreshToken, userActivity?.token, isTokenValid)
 
 				if (!isTokenValid) {

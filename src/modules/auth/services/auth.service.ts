@@ -8,7 +8,7 @@ import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validato
 import { prisma } from "../../../config/prismaClient";
 import { compareHash, hashValue } from "../../../utils/argon";
 import { generateAccessToken } from "../../../utils/cookie";
-import { encrypt, generateToken } from "../../../utils/utils";
+import { encrypt, generateRefreshToken } from "../../../utils/utils";
 
 export const registerService = async (body: RegisterSchemaType) => {
 	const { email, name, password } = body;
@@ -113,9 +113,9 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-	const refreshToken = generateToken();
+	const {selector, validator, fullToken} = generateRefreshToken();
 
-	const hashedToken = await hashValue(refreshToken);
+	const hashedValidator = await hashValue(validator);
 
 	if (forcedLogin === 1) {
 		if (userActivity) {
@@ -132,7 +132,8 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 					},
 					data: {
 						version: `v-${newVersion++}`,
-						token: hashedToken,
+						selector,
+						validator: hashedValidator,
 						expireAt,
 						userAgent,
 						ip: ipAddress,
@@ -185,7 +186,8 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 		await prisma.userActivity.create({
 			data: {
 				userId,
-				token: hashedToken,
+				selector,
+				validator: hashedValidator,
 				userAgent,
 				ip: ipAddress,
 				version: "v-1",
@@ -199,5 +201,5 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = userResponse;
 
-	return { userData: userWithoutSensitiveData, accessToken, refreshToken, encryptedVersion };
+	return { userData: userWithoutSensitiveData, accessToken, refreshToken: fullToken, encryptedVersion };
 };

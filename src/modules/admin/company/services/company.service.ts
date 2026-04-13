@@ -38,7 +38,7 @@ export const getAllCompaniesService = async () => {
 			gst: company.gst ?? undefined,
 			brand: company.brand ?? undefined,
 			iecode: company.ieCode,
-			registeredAt: company.registeredAt,
+			registeredAt: company?.registeredAt?.toLocaleDateString("en-GB"),
 			address: company.address,
 		};
 
@@ -57,3 +57,12 @@ export const getAllCompaniesService = async () => {
 
 	return result;
 };
+
+// implemeted pagination
+// export const getCompaniesService = async (queryParams: { cursor?: string; limit?: string }) => {
+//   return await paginateWithCursor(prisma.companyMaster, queryParams, {
+//     where: { status: 'ACTIVE' },
+//     // Cursor MUST be part of the orderBy
+//     orderBy: { id: 'asc' }, 
+//   });
+// };

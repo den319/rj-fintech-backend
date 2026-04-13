@@ -43,7 +43,7 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 	);
 
 	return setJwtAuthCookie({ res, accessToken, refreshToken, version: encryptedVersion })
-		.status(HTTP_STATUS.OK)
+		.status(HTTP_STATUS.OK) 
 		.json({
 			message: "User logged-in successfully!",
 			user: userData,

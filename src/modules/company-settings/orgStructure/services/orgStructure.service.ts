@@ -100,12 +100,12 @@ export const getAllUsersService = async (companyCode: string, user: UserMaster) 
 
 	const groupedUsers = mappings.reduce(
 		(acc, m) => {
-            console.log(m.user.userAccess);
+            // console.log(m.user.userAccess);
 			const formattedUser = {
 				name: m.user.name,
 				email: m.user.email,
 				phone: m.user.phone,
-				onboardingDate: m.user.createdAt,
+				onboardingDate: m.user.createdAt.toLocaleDateString("en-GB"),
 				designation: m.designation,
 				employeeId: m.employeeId,
 				manager: {

@@ -94,7 +94,8 @@ model GroupCompanyMaster {
 
 model UserActivity {
   id         String   @id @default(uuid()) @db.Uuid
-  token      String
+  selector      String   @unique
+  validator      String  
   version    String
   userId     String   @unique @db.Uuid
   userAgent  String
@@ -105,6 +106,8 @@ model UserActivity {
   expireAt   DateTime
 
   @@index([userId])
+  @@index([selector])
+
 }
 
 model UserMapping {
