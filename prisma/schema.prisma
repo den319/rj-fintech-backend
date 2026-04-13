@@ -94,20 +94,16 @@ model GroupCompanyMaster {
 
 model UserActivity {
   id         String   @id @default(uuid()) @db.Uuid
-  selector      String   @unique
-  validator      String  
+  token      String   @unique
   version    String
   userId     String   @unique @db.Uuid
   userAgent  String
   ip         String
-  tabId      String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   expireAt   DateTime
 
   @@index([userId])
-  @@index([selector])
-
 }
 
 model UserMapping {

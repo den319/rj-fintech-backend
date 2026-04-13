@@ -8,11 +8,11 @@ export const generateUUID = () => uuidv7();
 // 	return crypto.randomBytes(64).toString("hex");
 // };
 
-export const generateRefreshToken = () => {
-    const selector = crypto.randomBytes(64).toString("hex");
-    const validator = crypto.randomBytes(32).toString("hex");
-    return { selector, validator, fullToken: `${selector}:${validator}` };
-};
+// export const generateRefreshToken = () => {
+//     const selector = crypto.randomBytes(64).toString("hex");
+//     const validator = crypto.randomBytes(32).toString("hex");
+//     return { selector, validator, fullToken: `${selector}:${validator}` };
+// };
 
 const algorithm = Env.ENCRYPTION_ALGORITHM;
 const key = crypto.createHash("sha256").update(String(Env.JWT_SECRET)).digest(); // 32 bytes

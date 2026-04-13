@@ -4,7 +4,6 @@ import jwt from "jsonwebtoken";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
 import { AppError } from "../../../utils/appError";
-import { compareHash } from "../../../utils/argon";
 import {
 	generateAccessToken,
 	removeAuthCookies,
@@ -24,16 +23,16 @@ export const validateSessionMiddleware = asyncHandler(
 		const encryptedVersion = req.cookies?.version;
 		const refreshToken = req.cookies?.refreshToken;
 
-		const [selector, validator]= refreshToken?.split(":");
-
+		console.log(req.cookies);
 		const version = decrypt(encryptedVersion as string);
 
-		if (!accessToken) {
-			console.error("Token not found!")
-			throw new jwt.TokenExpiredError("Access token missing", new Date());
-		}
-
+		
 		try {
+			if (!accessToken) {
+				console.error("Token not found!")
+				throw new jwt.TokenExpiredError("Access token missing", new Date());
+			}
+			
 			const decoded = verifyToken(accessToken as string);
 
 			if (!decoded?.userId) {
@@ -70,10 +69,9 @@ export const validateSessionMiddleware = asyncHandler(
 			req.user = user;
 
 			return next();
-		} catch (error) {
+		} catch (error:any) {
 			if (error instanceof jwt.TokenExpiredError) {
-
-				if (!refreshToken) {
+				if (!refreshToken) {	
 					return rejectSession(
 						res,
 						HTTP_STATUS.UNAUTHORIZED,
@@ -82,8 +80,8 @@ export const validateSessionMiddleware = asyncHandler(
 				}
 
 				const userActivity = await prisma.userActivity.findUnique({
-					where: { selector: selector },
-					select: { validator: true, userId: true, expireAt: true, version: true },
+					where: { token: refreshToken },
+					select: { token: true, userId: true, expireAt: true, version: true },
 				});
 
 				if (!userActivity) {
@@ -111,7 +109,7 @@ export const validateSessionMiddleware = asyncHandler(
 					);
 				}
 
-				const isTokenValid = await compareHash(validator as string, userActivity.validator);
+				const isTokenValid = refreshToken === userActivity.token;
 				// console.log(refreshToken, userActivity?.token, isTokenValid)
 
 				if (!isTokenValid) {

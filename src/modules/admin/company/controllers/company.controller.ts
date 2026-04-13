@@ -9,12 +9,14 @@ export const getAllCompaniesController = asyncHandler(async (req: Request, res: 
 	if (companies.length > 0) {
 		return res.status(HTTP_STATUS.OK).json({
 			message: "Companies fetched successfully!",
+			code: HTTP_STATUS.OK,
 			data: companies,
 		});
 	}
 
 	return res.status(HTTP_STATUS.NOT_FOUND).json({
 		message: "Companies not found!",
+		code: HTTP_STATUS.NOT_FOUND,
 		data: companies,
 	});
 });

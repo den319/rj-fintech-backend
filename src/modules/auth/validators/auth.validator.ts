@@ -4,8 +4,6 @@ export const emailSchema = z.string().trim().email("Invalid email!").min(1);
 
 export const passwordSchema = z.string().trim().min(7);
 
-export const tabIdSchema = z.string().min(1);
-
 // export const actionSchema= z.string().min(1);
 export const actionSchema = z.enum(["0", "1"]);
 

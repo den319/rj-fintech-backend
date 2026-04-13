@@ -8,7 +8,7 @@ import { RegisterSchemaType, LoginSchemaType } from "../validators/auth.validato
 import { prisma } from "../../../config/prismaClient";
 import { compareHash, hashValue } from "../../../utils/argon";
 import { generateAccessToken } from "../../../utils/cookie";
-import { encrypt, generateRefreshToken } from "../../../utils/utils";
+import { encrypt, generateUUID } from "../../../utils/utils";
 
 export const registerService = async (body: RegisterSchemaType) => {
 	const { email, name, password } = body;
@@ -113,9 +113,15 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-	const {selector, validator, fullToken} = generateRefreshToken();
+	const refreshToken = generateUUID();
 
-	const hashedValidator = await hashValue(validator);
+	const hashedToken = await hashValue(refreshToken);
+
+	const isValid = await compareHash(password, user.password);
+
+	if (!isValid) {
+		throw new UnauthorizedException("Invalid email or password!");
+	}
 
 	if (forcedLogin === 1) {
 		if (userActivity) {
@@ -132,8 +138,7 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 					},
 					data: {
 						version: `v-${newVersion++}`,
-						selector,
-						validator: hashedValidator,
+						token: hashedToken,
 						expireAt,
 						userAgent,
 						ip: ipAddress,
@@ -143,12 +148,6 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 				throw new InternalServerException("The format of 'version' is invalid!");
 			}
 		}
-	}
-
-	const isValid = await compareHash(password, user.password);
-
-	if (!isValid) {
-		throw new UnauthorizedException("Invalid email or password!");
 	}
 
 	const userMapping = await prisma.userMapping.findFirst({
@@ -186,8 +185,7 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 		await prisma.userActivity.create({
 			data: {
 				userId,
-				selector,
-				validator: hashedValidator,
+				token: hashedToken,
 				userAgent,
 				ip: ipAddress,
 				version: "v-1",
@@ -201,5 +199,5 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 	// Exclude sensitive fields from response
 	const { password: _password, id: _id, ...userWithoutSensitiveData } = userResponse;
 
-	return { userData: userWithoutSensitiveData, accessToken, refreshToken: fullToken, encryptedVersion };
+	return { userData: userWithoutSensitiveData, accessToken, refreshToken:hashedToken, encryptedVersion };
 };
