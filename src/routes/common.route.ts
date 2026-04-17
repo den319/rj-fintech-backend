@@ -2,10 +2,13 @@ import { Router } from "express";
 import authRoutes from "../modules/auth/routes/auth.route";
 import { validateSessionMiddleware } from "../modules/auth";
 import orgStructureRoutes from "../modules/company-settings/orgStructure/routes/orgStructure.route";
+import userRoutes from "../modules/company-settings/user/routes/user.route";
 
 const commonRouter = Router();
 
 commonRouter.use("/auth", authRoutes);
 commonRouter.use("/company-settings", validateSessionMiddleware, orgStructureRoutes);
+commonRouter.use("/company-settings", validateSessionMiddleware, userRoutes);
+
 
 export default commonRouter;

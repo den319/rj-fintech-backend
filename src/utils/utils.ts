@@ -4,16 +4,6 @@ import { Env } from "../config/env.config";
 
 export const generateUUID = () => uuidv7();
 
-// export const generateToken = () => {
-// 	return crypto.randomBytes(64).toString("hex");
-// };
-
-// export const generateRefreshToken = () => {
-//     const selector = crypto.randomBytes(64).toString("hex");
-//     const validator = crypto.randomBytes(32).toString("hex");
-//     return { selector, validator, fullToken: `${selector}:${validator}` };
-// };
-
 const algorithm = Env.ENCRYPTION_ALGORITHM;
 const key = crypto.createHash("sha256").update(String(Env.JWT_SECRET)).digest(); // 32 bytes
 
@@ -44,4 +34,24 @@ export const decrypt = (data: string) => {
 	const decrypted = Buffer.concat([decipher.update(text), decipher.final()]);
 
 	return decrypted.toString("utf8");
+};
+
+/**
+ * Calculates duration between a start time and now.
+ * @param start - The starting BigInt timestamp
+ * @returns Object containing time in milliseconds and seconds
+ */
+export const calculateDuration = (start: bigint) => {
+  const end = process.hrtime.bigint();
+  const nanoseconds = end - start;
+  
+  // Convert nanoseconds (BigInt) to milliseconds (Number)
+  // 1ms = 1,000,000ns
+  const durationMs = Number(nanoseconds) / 1_000_000;
+  
+  return {
+    ms: durationMs.toFixed(3), // e.g., "12.450"
+    s: (durationMs / 1000).toFixed(6),
+    raw: nanoseconds
+  };
 };

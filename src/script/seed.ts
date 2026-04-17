@@ -292,7 +292,7 @@ async function seed() {
 	const userMappings = [];
 	for (let i = 0; i < allUsers.length; i++) {
 		const company = allCompanies[i % allCompanies.length];
-		const managerId = i === 0 ? allUsers[0].id : allUsers[0].id;
+		const managerId = i === 0 ? allUsers[2].id : allUsers[0].id;
 		const roleToAssign = rolesData[i % rolesData.length].roleCode;
 
 		userMappings.push({
@@ -308,18 +308,6 @@ async function seed() {
 	await prisma.userMapping.createMany({ data: userMappings });
 	console.log(`✅ Created ${userMappings.length} user mappings`);
 
-	// // Create User Activities (tokens)
-	// console.log("\n🎫 Creating User Activities...");
-	// const activities = [];
-	// for (let i = 0; i < allUsers.length; i++) {
-	// 	activities.push({
-	// 		userId: allUsers[i].id,
-	// 		token: `token_${allUsers[i].email.replace("@", "_")}_${Date.now()}`,
-	// 	});
-	// }
-	// await prisma.userActivity.createMany({ data: activities });
-	// console.log(`✅ Created ${activities.length} user activities`);
-
 	// Create Org Structures for multiple companies
 	console.log("\n🌳 Creating Organization Structures...");
 
@@ -331,8 +319,6 @@ async function seed() {
 
 		const companyId = company.id;
 
-		// Using an array of objects that match your exact sample structure
-		// Order is critical: Roots first, then Divisions, then Locations, etc.
 		const orgNodes = [
 			// Level 0: Root
 			{
@@ -512,8 +498,6 @@ async function seed() {
 	console.log(`   - User Mappings: ${userMappings.length}`);
 	console.log(`   - Roles: ${rolesData.length}`);
 	console.log(`	- User Access: ${accessData.length}`);
-
-	// console.log(`   - User Activities: ${activities.length}`);
 
 	await prisma.$disconnect();
 	process.exit(0);

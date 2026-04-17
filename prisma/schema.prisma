@@ -84,7 +84,7 @@ model CompanyMaster {
 model GroupCompanyMaster {
   id         String   @id @default(uuid()) @db.Uuid
   name       String
-  code       String
+  code       String   @unique
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?
@@ -166,7 +166,7 @@ model OrgStructure {
 
 model Role {
   roleCode        String          @id
-  roleName        String
+  roleName        String          @unique
   category        Category
   subCategory     SubCategory
   permissionLevel PermissionLevel

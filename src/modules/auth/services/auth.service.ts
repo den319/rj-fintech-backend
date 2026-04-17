@@ -120,7 +120,7 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 	const isValid = await compareHash(password, user.password);
 
 	if (!isValid) {
-		throw new UnauthorizedException("Invalid email or password!");
+		throw new UnauthorizedException("Invalid password!");
 	}
 
 	if (forcedLogin === 1) {

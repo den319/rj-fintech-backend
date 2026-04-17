@@ -57,12 +57,3 @@ export const getAllCompaniesService = async () => {
 
 	return result;
 };
-
-// implemeted pagination
-// export const getCompaniesService = async (queryParams: { cursor?: string; limit?: string }) => {
-//   return await paginateWithCursor(prisma.companyMaster, queryParams, {
-//     where: { status: 'ACTIVE' },
-//     // Cursor MUST be part of the orderBy
-//     orderBy: { id: 'asc' }, 
-//   });
-// };

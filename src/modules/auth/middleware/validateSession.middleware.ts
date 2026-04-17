@@ -49,7 +49,7 @@ export const validateSessionMiddleware = asyncHandler(
 			});
 
 			if (!userActivity) {
-				return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Session expired.");
+				return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Session not found.");
 			}
 
 			if (version !== userActivity?.version) {
@@ -75,7 +75,7 @@ export const validateSessionMiddleware = asyncHandler(
 					return rejectSession(
 						res,
 						HTTP_STATUS.UNAUTHORIZED,
-						"Token not found! Log-in again!"
+						"Refresh token not found! Log-in again!"
 					);
 				}
 
@@ -88,12 +88,12 @@ export const validateSessionMiddleware = asyncHandler(
 					return rejectSession(
 						res,
 						HTTP_STATUS.UNAUTHORIZED,
-						"Session expired. Please login again."
+						"Session not found. Please login again."
 					);
 				}
 
 				if (!version) {
-					return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Expired version!");
+					return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Version not found!");
 				}
 
 				if (version !== userActivity?.version) {
@@ -105,7 +105,7 @@ export const validateSessionMiddleware = asyncHandler(
 					return rejectSession(
 						res,
 						HTTP_STATUS.UNAUTHORIZED,
-						"Session expired. Please login again."
+						"Refresh token expired. Please login again."
 					);
 				}
 
