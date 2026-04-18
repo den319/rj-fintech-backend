@@ -11,7 +11,7 @@ import { generateAccessToken } from "../../../utils/cookie";
 import { encrypt, generateUUID } from "../../../utils/utils";
 
 export const registerService = async (body: RegisterSchemaType) => {
-	const { email, name, password } = body;
+	const { email, name, password,phone } = body;
 
 	// 1. Check existing user
 	const existingUser = await prisma.userMaster.findUnique({
@@ -38,6 +38,7 @@ export const registerService = async (body: RegisterSchemaType) => {
 			name,
 			email,
 			password: hashedPassword,
+			phone,
 		},
 		select: {
 			id: true,
@@ -106,12 +107,12 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 		},
 	});
 
-	console.log({ userActivity, forcedLogin, action });
+	// console.log({ userActivity, forcedLogin, action });
 	if (userActivity && forcedLogin === 0) {
-		throw new ConflictException("User have already looged-in in another device!");
+		throw new ConflictException("User have already logged-in in another device!");
 	}
 
-	const expireAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+	const expireAt = new Date(Date.now() + (24 * 60 * 60 * 1000));
 
 	const refreshToken = generateUUID();
 
@@ -130,9 +131,8 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 			let newVersion = Number(oldVersion[1]);
 
 			if (!Number.isNaN(newVersion)) {
-				version = newVersion;
-
 				newVersion += 1;
+				version = newVersion;
 
 				await prisma.userActivity.update({
 					where: {
@@ -154,21 +154,23 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	const userMapping = await prisma.userMapping.findFirst({
 		where: { userId: user.id },
+		include: {
+			company: {
+				include: {
+					companyMappings: {
+						include: {
+							groupCompany: true
+						}
+					}
+				}
+			}
+		}
 	});
 
-	const company = userMapping
-		? await prisma.companyMaster.findUnique({ where: { id: userMapping.companyId } })
-		: null;
+	// console.log(userMapping, userMapping?.company, userMapping?.company?.companyMappings[0])
 
-	const companyMapping = userMapping
-		? await prisma.companyMapping.findFirst({ where: { companyId: userMapping.companyId } })
-		: null;
-
-	const groupCompany = companyMapping
-		? await prisma.groupCompanyMaster.findUnique({
-				where: { id: companyMapping.groupCompanyId },
-			})
-		: null;
+	const company = userMapping?.company;
+	const groupCompany = company?.companyMappings[0]?.groupCompany;
 
 	const userResponse = {
 		...user,
@@ -203,3 +205,19 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 
 	return { userData: userWithoutSensitiveData, accessToken, refreshToken:hashedToken, encryptedVersion };
 };
+
+export const logoutService= async (email:string) => {
+	const user = await prisma.userMaster.findUnique({
+		where: {
+			email: email,
+		},
+	});
+
+	if (user) {
+		await prisma.userActivity.delete({
+			where: {
+				userId: user.id,
+			},
+		});
+	}
+}

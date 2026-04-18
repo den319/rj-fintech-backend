@@ -1,6 +1,7 @@
 import { prisma } from "../../../../config/prismaClient";
-import { UserMaster, UserStatus } from "../../../../generated/prisma/client";
-import { NotFoundException, UnauthorizedException } from "../../../../utils/appError";
+import { UserStatus } from "../../../../generated/prisma/client";
+import { NotFoundException } from "../../../../utils/appError";
+import { FormattedUser } from "../entity/user.entity";
 
 export const getAllUsersService = async (companyCode: string) => {
 	const company = await prisma.companyMaster.findUnique({
@@ -57,11 +58,10 @@ export const getAllUsersService = async (companyCode: string) => {
 				designation: m.designation,
 				employeeId: m.employeeId,
 				manager: {
-					name: m.reportingManager.name,
-					email: m.reportingManager.email,
+					name: m.reportingManager?.name,
+					email: m.reportingManager?.email,
 				},
                 accessDetails: m.user.userAccess.map(access => {
-                    
                     return {
                         accessType: access.accessType,
                         roleName: access.role?.roleName,
@@ -82,7 +82,7 @@ export const getAllUsersService = async (companyCode: string) => {
 
 			return acc;
 		},
-		{ activeUsers: [] as any[], inactiveUsers: [] as any[] }
+		{ activeUsers: [] as FormattedUser[], inactiveUsers: [] as FormattedUser[] }
 	);
 
 	return groupedUsers;

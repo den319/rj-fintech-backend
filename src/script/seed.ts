@@ -293,13 +293,11 @@ async function seed() {
 	for (let i = 0; i < allUsers.length; i++) {
 		const company = allCompanies[i % allCompanies.length];
 		const managerId = i === 0 ? allUsers[2].id : allUsers[0].id;
-		const roleToAssign = rolesData[i % rolesData.length].roleCode;
 
 		userMappings.push({
 			userId: allUsers[i].id,
 			companyId: company.id,
 			reportingManagerId: managerId,
-			roleCode: roleToAssign,
 			status: UserStatus.ACTIVE,
 			designation: "Employee",
 			employeeId: `EMP-${i}`,

@@ -23,10 +23,8 @@ export const validateSessionMiddleware = asyncHandler(
 		const encryptedVersion = req.cookies?.version;
 		const refreshToken = req.cookies?.refreshToken;
 
-		console.log(req.cookies);
-		const version = decrypt(encryptedVersion as string);
+		let version;
 
-		
 		try {
 			if (!accessToken) {
 				console.error("Token not found!")
@@ -38,6 +36,8 @@ export const validateSessionMiddleware = asyncHandler(
 			if (!decoded?.userId) {
 				return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Invalid token");
 			}
+
+			version= decrypt(encryptedVersion as string);;
 
 			if (!version) {
 				return rejectSession(res, HTTP_STATUS.CONFLICT, "Expired version!");
@@ -75,7 +75,7 @@ export const validateSessionMiddleware = asyncHandler(
 					return rejectSession(
 						res,
 						HTTP_STATUS.NOT_FOUND,
-						"Refresh token not found! Log-in again!"
+						"Refresh token not found! Please log-in again!"
 					);
 				}
 
@@ -91,6 +91,8 @@ export const validateSessionMiddleware = asyncHandler(
 						"Session not found during refreshing the token!"
 					);
 				}
+
+				version= decrypt(encryptedVersion as string);;
 
 				if (!version) {
 					return rejectSession(res, HTTP_STATUS.NOT_FOUND, "Version not found during refreshing the token!");

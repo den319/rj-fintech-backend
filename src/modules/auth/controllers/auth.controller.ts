@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { asyncHandler } from "../../../middlewares/asyncHandler.middleware";
 import { loginSchema, registerSchema } from "../validators/auth.validator";
-import { loginService, registerService } from "../services/auth.service";
+import { loginService, logoutService, registerService } from "../services/auth.service";
 import { generateAccessToken, removeAuthCookies, setJwtAuthCookie } from "../../../utils/cookie";
 import { HTTP_STATUS } from "../../../config/http.config";
 import { prisma } from "../../../config/prismaClient";
@@ -58,22 +58,15 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 	const userEmail = req.user?.email;
 
 	if (!token) {
+		removeAuthCookies(res);
 		return res.status(HTTP_STATUS.OK).json({ message: "Already logged out" });
 	}
 
-	const user = await prisma.userMaster.findUnique({
-		where: {
-			email: userEmail,
-		},
-	});
-
-	if (user) {
-		await prisma.userActivity.delete({
-			where: {
-				userId: user.id,
-			},
-		});
+	if(!userEmail) {
+		return res.status(HTTP_STATUS.NOT_FOUND).json({ message: "User not found" });
 	}
+
+	await logoutService(userEmail);
 
 	removeAuthCookies(res);
 

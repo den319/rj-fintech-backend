@@ -46,28 +46,27 @@ model UserMaster {
   name       String
   email      String   @unique
   password   String
-  phone      String?
+  phone      String
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?
 
-  companies UserMapping[]
-  managedMappings  UserMapping[] @relation("ManagerToSubordinate")
+  employeeMappings UserMapping[]
+  managerMappings  UserMapping[] @relation("ManagerToSubordinate")
 
   userAccess     UserAccess[]
 
-  @@index([email])
-  @@index([id])
+  userActivity UserActivity?
 
 }
 
 model CompanyMaster {
   id         String   @id @default(uuid()) @db.Uuid
-  gst        String?  @unique
+  gst        String  @unique
   legalName  String
   address    String
   registeredAt DateTime
-  brand      String?
+  brand      String
   companyCode String @unique
   ieCode String
   createdAt  DateTime @default(now())
@@ -75,6 +74,7 @@ model CompanyMaster {
   deletedAt DateTime?
 
   users UserMapping[]
+  companyMappings CompanyMapping[]
 
   orgStructure OrgStructure[]
   userAccess   UserAccess[]
@@ -89,7 +89,7 @@ model GroupCompanyMaster {
   updatedAt  DateTime @updatedAt
   deletedAt DateTime?
 
-
+  companies CompanyMapping[]
 }
 
 model UserActivity {
@@ -103,6 +103,8 @@ model UserActivity {
   updatedAt  DateTime @updatedAt
   expireAt   DateTime
 
+  user UserMaster @relation(fields: [userId], references: [id])
+
   @@index([userId])
 }
 
@@ -113,7 +115,7 @@ model UserMapping {
   reportingManagerId String @db.Uuid
   status             UserStatus @default(ACTIVE)
   designation        String?  
-  employeeId         String?    @unique
+  employeeId         String    @unique
 
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -131,6 +133,9 @@ model CompanyMapping {
   groupCompanyId   String @db.Uuid
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  company        CompanyMaster      @relation(fields: [companyId], references: [id])
+  groupCompany   GroupCompanyMaster @relation(fields: [groupCompanyId], references: [id])
 
   @@id([companyId, groupCompanyId]) // composite primary key
   @@index([groupCompanyId])
@@ -201,5 +206,5 @@ model UserAccess {
   user           UserMaster    @relation(fields: [userId], references: [id])
   company        CompanyMaster @relation(fields: [companyId], references: [id])
   node           OrgStructure  @relation(fields: [nodeId], references: [id])
-  role           Role?         @relation(fields: [roleCode], references: [roleCode])
+  role           Role         @relation(fields: [roleCode], references: [roleCode])
 }
