@@ -12,7 +12,7 @@ export const getOrgStructureController = asyncHandler(async (req: Request, res: 
 	}
 
 	if (!user) {
-		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: "" });
+		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: "Unauthorized User!" });
 	}
 
 	const orgStructure = await getOrgStructureService(companyCode as string, user);
@@ -26,7 +26,7 @@ export const getOrgStructureController = asyncHandler(async (req: Request, res: 
 	}
 
 	return res.status(HTTP_STATUS.OK).json({
-		message: "Organization structure not found!!",
+		message: "Organization structure not found!",
 		code: HTTP_STATUS.NOT_FOUND,
 		data: orgStructure,
 	});

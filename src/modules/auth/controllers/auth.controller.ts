@@ -46,6 +46,7 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
 		.status(HTTP_STATUS.OK) 
 		.json({
 			message: "User logged-in successfully!",
+			code:HTTP_STATUS.OK,
 			user: userData,
 		});
 });
@@ -78,5 +79,6 @@ export const logoutController = asyncHandler(async (req: Request, res: Response)
 
 	return res.status(HTTP_STATUS.OK).json({
 		message: "User logged-out successfully",
+		code:HTTP_STATUS.OK,
 	});
 });

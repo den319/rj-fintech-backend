@@ -2,9 +2,9 @@ import { prisma } from "../../../../config/prismaClient";
 import { UserMaster, UserStatus } from "../../../../generated/prisma/client";
 import { NotFoundException, UnauthorizedException } from "../../../../utils/appError";
 
-export const getAllUsersService = async (companyCode: string, user: UserMaster) => {
+export const getAllUsersService = async (companyCode: string) => {
 	const company = await prisma.companyMaster.findUnique({
-		where: { companyCode: companyCode },
+		where: { companyCode },
 		select: { id: true, legalName: true },
 	});
 
@@ -12,23 +12,12 @@ export const getAllUsersService = async (companyCode: string, user: UserMaster) 
 		throw new NotFoundException("Company not found");
 	}
 
-	const userMapping = await prisma.userMapping.findFirst({
-		where: {
-			userId: user.id,
-			companyId: company.id,
-		},
-	});
-
-	if (!userMapping) {
-		throw new UnauthorizedException("User cannot access this organization.");
-	}
-
 	const mappings = await prisma.userMapping.findMany({
 		where: { companyId: company.id },
 		include: {
 			user: {
 				select: {
-					name: true,
+					name: true,	
 					email: true,
 					phone: true,
 					createdAt: true,
@@ -98,3 +87,15 @@ export const getAllUsersService = async (companyCode: string, user: UserMaster) 
 
 	return groupedUsers;
 };
+
+export const getAllRolesService= async () => {
+	return prisma.role.findMany({
+		select: {
+			roleName: true,
+			category: true,
+			subCategory: true,
+			permissionLevel: true,
+			isActive: true,
+		}
+	});
+}

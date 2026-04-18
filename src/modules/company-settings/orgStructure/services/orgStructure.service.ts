@@ -1,6 +1,6 @@
 import { prisma } from "../../../../config/prismaClient";
 import { UserMaster } from "../../../../generated/prisma/client";
-import { NotFoundException, UnauthorizedException } from "../../../../utils/appError";
+import { ForbiddenException, NotFoundException, UnauthorizedException } from "../../../../utils/appError";
 import { OrgStructureResult } from "../entity/orgStructure.entity";
 
 export const getOrgStructureService = async (companyCode: string, user: UserMaster) => {
@@ -21,7 +21,7 @@ export const getOrgStructureService = async (companyCode: string, user: UserMast
 	});
 
 	if (!userMapping) {
-		throw new UnauthorizedException("User cannot access this organization.");
+		throw new ForbiddenException("User cannot access this organization.");
 	}
 
 	const orgData = await prisma.$queryRaw<OrgStructureResult[]>`

@@ -122,9 +122,6 @@ model UserMapping {
   company CompanyMaster @relation(fields: [companyId], references: [id])
   reportingManager   UserMaster   @relation("ManagerToSubordinate", fields: [reportingManagerId], references: [id])
 
-  roleCode           String     // The foreign key
-  role               Role       @relation(fields: [roleCode], references: [roleCode])
-
   @@id([userId, companyId])
   @@index([companyId])
 }
@@ -181,7 +178,6 @@ model Role {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  userMappings    UserMapping[]
   userAccess UserAccess[]
 
 }

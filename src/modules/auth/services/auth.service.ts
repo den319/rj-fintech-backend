@@ -132,12 +132,14 @@ export const loginService = async (body: LoginSchemaType, userAgent: string, ipA
 			if (!Number.isNaN(newVersion)) {
 				version = newVersion;
 
+				newVersion += 1;
+
 				await prisma.userActivity.update({
 					where: {
 						userId: user.id,
 					},
 					data: {
-						version: `v-${newVersion++}`,
+						version: `v-${newVersion}`,
 						token: hashedToken,
 						expireAt,
 						userAgent,

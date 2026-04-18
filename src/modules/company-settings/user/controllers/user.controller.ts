@@ -1,22 +1,17 @@
 import { Request, Response } from "express";
-import { getAllUsersService } from "../services/user.service";
+import { getAllRolesService, getAllUsersService } from "../services/user.service";
 import { HTTP_STATUS } from "../../../../config/http.config";
 import { asyncHandler } from "../../../../middlewares/asyncHandler.middleware";
 import { prisma } from "../../../../config/prismaClient";
 
 export const getAllUsersController = asyncHandler(async (req: Request, res: Response) => {
 	const { companyCode } = req.body;
-	const user = req?.user;
 
 	if (!companyCode) {
 		return res.status(HTTP_STATUS.BAD_REQUEST).json({ error: "companyCode is required" });
 	}
 
-	if (!user) {
-		return res.status(HTTP_STATUS.UNAUTHORIZED).json({ error: "" });
-	}
-
-	const allUSers = await getAllUsersService(companyCode as string, user);
+	const allUSers = await getAllUsersService(companyCode as string);
 
 	return res.status(HTTP_STATUS.OK).json({
 		message: "All users fetched successfully!",
@@ -26,18 +21,10 @@ export const getAllUsersController = asyncHandler(async (req: Request, res: Resp
 });
 
 
-export const getAllRoles = asyncHandler(async (req: Request, res: Response) => {
-	const roles= await prisma.role.findMany({
-		select: {
-			roleName: true,
-			category: true,
-			subCategory: true,
-			permissionLevel: true,
-			isActive: true,
-		}
-	});
+export const getAllRolesController = asyncHandler(async (req: Request, res: Response) => {
+	const roles= await getAllRolesService();
 
-	console.log(roles)
+	// console.log(roles);
 	if(roles.length > 0) {
 		return res.status(HTTP_STATUS.OK).json({
 			message: "Roles fetched successfully!",

@@ -49,11 +49,11 @@ export const validateSessionMiddleware = asyncHandler(
 			});
 
 			if (!userActivity) {
-				return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Session not found.");
+				return rejectSession(res, HTTP_STATUS.NOT_FOUND, "Session not found.");
 			}
 
 			if (version !== userActivity?.version) {
-				return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Version mismatch!");
+				return rejectSession(res, HTTP_STATUS.CONFLICT, "Version mismatch!");
 			}
 
 			const user = await prisma.userMaster.findUnique({
@@ -63,7 +63,7 @@ export const validateSessionMiddleware = asyncHandler(
 			});
 
 			if (!user) {
-				return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "User not found!");
+				return rejectSession(res, HTTP_STATUS.NOT_FOUND, "User not found!");
 			}
 
 			req.user = user;
@@ -74,7 +74,7 @@ export const validateSessionMiddleware = asyncHandler(
 				if (!refreshToken) {	
 					return rejectSession(
 						res,
-						HTTP_STATUS.UNAUTHORIZED,
+						HTTP_STATUS.NOT_FOUND,
 						"Refresh token not found! Log-in again!"
 					);
 				}
@@ -87,17 +87,17 @@ export const validateSessionMiddleware = asyncHandler(
 				if (!userActivity) {
 					return rejectSession(
 						res,
-						HTTP_STATUS.UNAUTHORIZED,
-						"Session not found. Please login again."
+						HTTP_STATUS.NOT_FOUND,
+						"Session not found during refreshing the token!"
 					);
 				}
 
 				if (!version) {
-					return rejectSession(res, HTTP_STATUS.UNAUTHORIZED, "Version not found!");
+					return rejectSession(res, HTTP_STATUS.NOT_FOUND, "Version not found during refreshing the token!");
 				}
 
 				if (version !== userActivity?.version) {
-					return rejectSession(res, HTTP_STATUS.CONFLICT, "Version mismatch!");
+					return rejectSession(res, HTTP_STATUS.CONFLICT, "Version mismatch during refreshing the token!");
 				}
 
 
@@ -129,7 +129,7 @@ export const validateSessionMiddleware = asyncHandler(
 				});
 
 				if (!user) {
-					return rejectSession(res, HTTP_STATUS.NOT_FOUND, "User not found");
+					return rejectSession(res, HTTP_STATUS.NOT_FOUND, "User not found during refreshing the token!");
 				}
 
 				req.user = user;
